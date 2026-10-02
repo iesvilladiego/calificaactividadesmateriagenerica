@@ -47,7 +47,7 @@ self.addEventListener('activate', function(event) {
         caches.keys().then(function(cacheNames) {
             return Promise.all(
                 cacheNames.map(function(cacheName) {
-                    if (cacheName !== CACHE_NAME) {
+                    if (cacheName !== CACHE_NAME && cacheName.startsWith('eval-criterial-multimateria-')) {
                         return caches.delete(cacheName);
                     }
                 })
