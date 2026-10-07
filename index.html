@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover, interactive-widget=resizes-content">
     <meta name="format-detection" content="telephone=no">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11,6 +11,9 @@
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <meta name="theme-color" content="#eef2f7">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f172a">
+    <meta name="apple-mobile-web-app-title" content="Eval Criterial">
+    <meta name="application-name" content="Eval Criterial">
     <link rel="icon" type="image/png" href="icons/icon-96x96.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -1880,6 +1883,147 @@
                 scroll-behavior: auto !important;
             }
         }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           CHIP DE VERSIÓN (obtenida del service worker) — cabecera
+           Punto verde = SW activo controlando la página.
+           ═══════════════════════════════════════════════════════════════════ */
+        .version-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: .02em;
+            line-height: 1.5;
+            white-space: nowrap;
+            background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+            border: 1px solid #c7d2fe;
+            color: #3730a3;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+            -webkit-user-select: none;
+            user-select: none;
+            cursor: help;
+            flex-shrink: 0;
+        }
+        .version-chip i { font-size: .82rem; line-height: 1; }
+        .version-chip .sw-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #cbd5e1;
+            box-shadow: 0 0 0 3px rgba(148,163,184,.18);
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+        .version-chip .sw-dot.on {
+            background: #22c55e;
+            box-shadow: 0 0 0 3px rgba(34,197,94,.22);
+        }
+        @media (max-width: 576px) {
+            .version-chip { font-size: 0.68rem; padding: 3px 9px; gap: 4px; }
+        }
+        @media (max-width: 380px) {
+            .version-chip i { display: none; }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════
+           MEJORAS MULTIPLATAFORMA Y RESPONSIVIDAD (móvil / tablet / PWA)
+           ═══════════════════════════════════════════════════════════════════ */
+
+        /* --- Base multiplataforma --- */
+        html {
+            -webkit-text-size-adjust: 100%;  /* evita reescalado del texto en iOS al rotar */
+            text-size-adjust: 100%;
+        }
+        body {
+            -webkit-tap-highlight-color: transparent;  /* sin flash gris al tocar (iOS/Android) */
+            overflow-x: hidden;              /* fallback: nunca scroll horizontal */
+            overflow-x: clip;                /* no crea contenedor de scroll (mantiene sticky) */
+            overscroll-behavior-y: contain;  /* sin pull-to-refresh accidental en PWA */
+            /* PWA iOS standalone con status-bar translúcida: el contenido queda
+               debajo de la barra de estado → respetar el inset superior. */
+            padding-top: max(12px, env(safe-area-inset-top, 0px));
+        }
+
+        /* Safari aún pide el prefijo -webkit- para posicionamiento pegajoso */
+        thead.sticky-top { position: -webkit-sticky; position: sticky; }
+
+        /* Sin selección de texto accidental al mantener pulsado en controles */
+        .app-switcher .btn, .bottom-nav-bar .btn,
+        .version-chip, .rubric-coeval-tab {
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* Scroll con inercia en zonas desplazables (iOS) */
+        .modal-body, .list-group { -webkit-overflow-scrolling: touch; }
+
+        /* --- iOS: evitar el zoom automático al enfocar inputs (<16px) --- */
+        @media (max-width: 820px) {
+            .form-control, .form-select, textarea,
+            input[type="text"], input[type="number"], input[type="email"],
+            input[type="password"], input[type="search"], input[type="date"],
+            input[type="time"], input[type="tel"], input[type="url"] {
+                font-size: max(16px, 0.95rem) !important;
+            }
+        }
+
+        /* Inset superior coherente con el padding reducido de cada breakpoint */
+        @media (max-width: 768px) {
+            body { padding-top: max(8px, env(safe-area-inset-top, 0px)); }
+        }
+        @media (max-width: 576px) {
+            body { padding-top: max(6px, env(safe-area-inset-top, 0px)); }
+        }
+
+        /* --- Intro con altura dinámica (barra de URL de los navegadores móviles) --- */
+        #intro-overlay {
+            height: 100vh;
+            height: 100dvh;
+            padding-top: max(20px, env(safe-area-inset-top, 0px));
+            padding-bottom: max(20px, env(safe-area-inset-bottom, 0px));
+        }
+
+        /* --- Móvil pequeño: tablas compactas y legibles --- */
+        @media (max-width: 576px) {
+            .table { font-size: .82rem; }
+            .table td, .table th { padding: .45rem .4rem; }
+        }
+
+        /* --- Tablet grande / iPad Pro (1025–1200px) --- */
+        @media (min-width: 1025px) and (max-width: 1200px) {
+            .container-custom { padding: 28px 34px; }
+        }
+
+        /* --- Móvil en horizontal (landscape): alturas reducidas --- */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .intro-title { font-size: clamp(1.4rem, 7vh, 2.4rem); margin-bottom: 8px; }
+            .intro-subtitle { position: static; margin-top: 10px; }
+            body { padding: 6px; }
+            .container-custom {
+                padding: 12px 18px;
+                border-radius: var(--radius);
+                padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px)) !important;
+            }
+            .bottom-nav-bar { min-height: 42px; padding: 4px 6px; }
+            .bottom-nav-bar .btn { flex-direction: row; gap: 5px; padding: 4px 8px; }
+            .bottom-nav-bar .btn span.label-text { font-size: .62rem; }
+            #currentScreenTitle { margin-bottom: 8px !important; padding-bottom: 6px !important; }
+            /* Modales centrados y sin desbordar en horizontal */
+            .modal > .modal-dialog { max-width: 620px; margin: .5rem auto; }
+            .modal > .modal-dialog .modal-content { max-height: calc(100dvh - 1rem); }
+        }
+
+        /* --- Pantallas muy grandes: más aire sin perder foco --- */
+        @media (min-width: 1600px) {
+            .container-custom { max-width: 1560px; padding: 40px 56px; }
+        }
+
+        /* --- Impresión: el chip de versión no sale en papel/PDF --- */
+        @media print {
+            .version-chip { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -1895,6 +2039,8 @@
             <i class="bi bi-diagram-3 me-2" style="color: #0d6efd;"></i>EVALUACIÓN CRITERIAL · <span id="subjectNameDisplay">[sin materia]</span>
         </h1>
         <div class="d-flex align-items-center gap-2 flex-wrap">
+            <!-- Chip de versión de la app (se rellena desde el service worker) -->
+            <span id="appVersionChip" class="version-chip" title="Versión de la app (obtenida del service worker)"><span id="appVersionSwDot" class="sw-dot" aria-hidden="true"></span><i class="bi bi-git" aria-hidden="true"></i><span id="appVersionChipText">v2.3</span></span>
             <span id="autosaveIndicator" class="autosave-indicator idle" title="Estado del guardado automático y sincronización entre pestañas y dispositivos">
                 <i class="bi bi-cloud-check"></i> <span class="autosave-text">Iniciando…</span>
             </span>
@@ -11909,63 +12055,133 @@ window.onload = function() {
         rubric_renderCoevaluation();
     }
 
-    // === VERSIÓN DESDE sw.js ===
-    // La versión se lee dinámicamente del CACHE_NAME en sw.js.
-    // No es necesario mantener una versión hardcodeada en el HTML.
-    function showAppVersion(version) {
-        var footer = document.getElementById('homeVersionFooter');
-        if (!footer) return;
-        var html = '';
-        if (version) {
-            html += '<span class="me-1">App <strong>v' + version + '</strong></span>';
-            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-                html += '<span class="me-1"><i class="bi bi-broadcast-pin" style="color:#198754;"></i> SW</span>';
-            }
-        }
-        html += '<span class="me-1">· Espacio: <strong>' + (window.FB_APP_ID || 'multimateria_v2') + '</strong></span>';
-        html += '<span>· by @angelmicelti · Multimateria v2.3</span>';
-        footer.innerHTML = html;
+    // === VERSIÓN DE LA APP DESDE EL SERVICE WORKER ===
+    // El chip de la cabecera (#appVersionChip) y el footer (#homeVersionFooter)
+    // se alimentan de la constante APP_VERSION definida en sw.js.
+    // Estrategia (por orden de prioridad):
+    //   1) Mensaje GET_VERSION al SW activo → responde {type:'APP_VERSION'}.
+    //   2) Fetch de sw.js y parseo del CACHE_NAME (fallback; sirve en GitHub Pages).
+    //   3) Fallback estático con la versión de la UI (file:// o error de red).
+    var APP_VERSION_FALLBACK = '2.3'; // versión de la UI (title/intro) si no hay SW
+    var swConfirmedVersion = null;    // versión confirmada por el SW vía mensaje (autoritativa)
+    function swActivo() {
+        return !!(navigator.serviceWorker && navigator.serviceWorker.controller);
     }
-    // Leer la versión desde sw.js. Funciona en http/https (GitHub Pages).
-    // En file:// no se puede hacer fetch, pero la versión aparecerá
-    // correctamente cuando se despliegue.
-    if (location.protocol === 'http:' || location.protocol === 'https:') {
+    function setAppVersion(version, source) {
+        // La confirmación del SW (mensaje) manda: el fallback (fetch de sw.js)
+        // no debe sobrescribirla. Solo una respuesta más reciente del propio
+        // SW (tras una actualización) puede reemplazarla.
+        if (source === 'sw') {
+            swConfirmedVersion = version;
+        } else if (swConfirmedVersion) {
+            return;
+        }
+        // Chip de la cabecera (visible en todas las pantallas)
+        var chipText = document.getElementById('appVersionChipText');
+        var chip = document.getElementById('appVersionChip');
+        var dot = document.getElementById('appVersionSwDot');
+        if (chipText) chipText.textContent = 'v' + (version || APP_VERSION_FALLBACK);
+        if (chip) {
+            chip.title = 'Versión de la app' +
+                (source === 'sw' ? ' (service worker)' :
+                 source === 'script' ? ' (leída de sw.js)' : ' (estimada, sin SW)') +
+                ' · Service worker: ' + (swActivo() ? 'activo' : 'no disponible');
+        }
+        if (dot) dot.classList.toggle('on', swActivo());
+        // Footer clásico al pie de la pantalla de inicio (se mantiene el formato)
+        var footer = document.getElementById('homeVersionFooter');
+        if (footer) {
+            var html = '';
+            if (version) {
+                html += '<span class="me-1">App <strong>v' + version + '</strong></span>';
+                if (swActivo()) {
+                    html += '<span class="me-1"><i class="bi bi-broadcast-pin" style="color:#198754;"></i> SW</span>';
+                }
+            }
+            html += '<span class="me-1">· Espacio: <strong>' + (window.FB_APP_ID || 'multimateria_v2') + '</strong></span>';
+            html += '<span>· by @angelmicelti · Multimateria v2.3</span>';
+            footer.innerHTML = html;
+        }
+    }
+    function parseVersionFromSwScript(text) {
+        var m = text.match(/CACHE_NAME\s*=\s*['"][^'"]*v([\d.]+)/);
+        return m ? m[1] : null;
+    }
+    function fetchVersionFromSwScript() {
+        if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
         fetch('sw.js', { cache: 'no-store' })
             .then(function(r) { return r.text(); })
             .then(function(text) {
-                var m = text.match(/CACHE_NAME\s*=\s*['"][^'"]*v([\d.]+)/);
-                showAppVersion(m ? m[1] : null);
+                var v = parseVersionFromSwScript(text);
+                setAppVersion(v, v ? 'script' : null);
             })
-            .catch(function() { showAppVersion(null); });
+            .catch(function() { setAppVersion(null, null); });
+    }
+    function requestVersionFromSW() {
+        try {
+            if (swActivo()) navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' });
+        } catch (e) { /* SW sin soporte de mensajes */ }
+    }
+    if ('serviceWorker' in navigator) {
+        if (location.protocol === 'http:' || location.protocol === 'https:') {
+            // Respuesta del SW a la petición GET_VERSION
+            navigator.serviceWorker.addEventListener('message', function(event) {
+                if (event.data && event.data.type === 'APP_VERSION' && event.data.version) {
+                    setAppVersion(event.data.version, 'sw');
+                }
+            });
+            // Cuando el SW toma el control (primera instalación o tras una
+            // actualización con skipWaiting), volver a pedir la versión.
+            navigator.serviceWorker.addEventListener('controllerchange', function() {
+                requestVersionFromSW();
+            });
+            requestVersionFromSW();
+            fetchVersionFromSwScript();
+            // Reintentos: en algunos navegadores la respuesta del SW al mensaje
+            // enviado durante el arranque de la página puede perderse (el cliente
+            // aún está inicializando). Se reintenta pasado un breve margen solo
+            // si el SW todavía no ha confirmado su versión.
+            [400, 1500].forEach(function(delay) {
+                setTimeout(function() {
+                    if (!swConfirmedVersion) requestVersionFromSW();
+                }, delay);
+            });
+        } else {
+            // file://: sin SW ni fetch posible; versión estimada de la UI.
+            setAppVersion(null, null);
+        }
     } else {
-        showAppVersion(null);
+        setAppVersion(null, null);
     }
 
     // Service Worker registration with update detection
+    // Bug fix: antes se registraba dentro de window.addEventListener('load', ...),
+    // pero este bloque ya se ejecuta DENTRO de window.onload, es decir, cuando el
+    // evento 'load' ya se ha disparado: el listener interno nunca corría y el SW
+    // nunca llegaba a registrarse (por eso la versión solo aparecía vía fetch).
     if ('serviceWorker' in navigator && (location.protocol === 'http:' || location.protocol === 'https:')) {
-        window.addEventListener('load', function() {
-            navigator.serviceWorker.register('sw.js')
-                .then(function(reg) {
-                    reg.addEventListener('updatefound', function() {
-                        // Bug fix: guard defensivo. reg.installing puede ser null
-                        // si el worker ya pasó a installed/activating antes de que
-                        // se ejecute este handler.
-                        var newWorker = reg.installing;
-                        if (!newWorker) return;
-                        newWorker.addEventListener('statechange', function() {
-                            if (newWorker.state === 'activated') {
-                                fetch('sw.js', { cache: 'no-store' })
-                                    .then(function(r) { return r.text(); })
-                                    .then(function(text) {
-                                        var m = text.match(/CACHE_NAME\s*=\s*['"][^'"]*v([\d.]+)/);
-                                        showAppVersion(m ? m[1] : null);
-                                    });
-                            }
-                        });
+        // updateViaCache:'none' → la comprobación de actualizaciones del SW
+        // no se sirve desde la caché HTTP del navegador: los despliegues
+        // nuevos se detectan en cuanto el servidor entrega el sw.js nuevo.
+        navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+            .then(function(reg) {
+                reg.addEventListener('updatefound', function() {
+                    // Bug fix: guard defensivo. reg.installing puede ser null
+                    // si el worker ya pasó a installed/activating antes de que
+                    // se ejecute este handler.
+                    var newWorker = reg.installing;
+                    if (!newWorker) return;
+                    newWorker.addEventListener('statechange', function() {
+                        if (newWorker.state === 'activated') {
+                            // El SW nuevo ya está activo: refrescar el chip
+                            // (vía mensaje al SW y fallback leyendo sw.js).
+                            requestVersionFromSW();
+                            fetchVersionFromSwScript();
+                        }
                     });
-                })
-                .catch(function(err) { console.warn('SW:', err); });
-        });
+                });
+            })
+            .catch(function(err) { console.warn('SW:', err); });
     }
 
     // === LISTENERS: RÚBRICAS ===
