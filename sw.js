@@ -1,6 +1,15 @@
 // Service Worker para Evaluación Criterial Multimateria
 
-const CACHE_NAME = 'eval-criterial-multimateria-v2.0.9';
+// Versión de la app: única fuente de verdad.
+// - El SW responde a los mensajes GET_VERSION de la página con APP_VERSION
+//   (extraída del nombre de la caché).
+// - La página también puede leerla haciendo fetch de sw.js y parseando el
+//   literal v2.1.1 (fallback cuando el SW aún no controla la página).
+// ⚠ IMPORTANTE: cada vez que cambie index.html hay que subir la versión en
+//   CACHE_NAME (p. ej. v2.1.0 → v2.1.1) o los usuarios seguirán viendo la
+//   copia antigua del HTML (estrategia cache-first).
+const CACHE_NAME = 'eval-criterial-multimateria-v2.1.1';
+const APP_VERSION = (CACHE_NAME.match(/v([\d.]+)$/) || [])[1] || '2.1.1';
 const BASE_PATH = '/CalificaActividadesMateriaGenericaV2/';
 const URLS_TO_CACHE = [
     BASE_PATH,
@@ -95,5 +104,19 @@ self.addEventListener('fetch', function(event) {
 self.addEventListener('message', function(event) {
     if (event.data === 'skipWaiting') {
         self.skipWaiting();
+        return;
+    }
+    if (event.data && event.data.type === 'GET_VERSION') {
+        var msg = { type: 'APP_VERSION', version: APP_VERSION, cache: CACHE_NAME };
+        // Responder a la página que pregunta (el chip de la cabecera)
+        if (event.source && event.source.postMessage) {
+            event.source.postMessage(msg);
+        }
+        // Difundir también al resto de clientes/pestañas abiertas
+        self.clients.matchAll({ includeUncontrolled: true }).then(function(clients) {
+            clients.forEach(function(client) {
+                client.postMessage(msg);
+            });
+        }).catch(function() { /* sin clientes registrados todavía */ });
     }
 });
