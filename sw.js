@@ -10,7 +10,7 @@
 //   copia antigua del HTML (estrategia cache-first).
 const CACHE_NAME = 'eval-criterial-multimateria-v2.1.2';
 const APP_VERSION = (CACHE_NAME.match(/v([\d.]+)$/) || [])[1] || '2.1.1';
-const BASE_PATH = '/CalificaActividadesMateriaGenericaV2/';
+const BASE_PATH = self.registration.scope; // '/calificaactividadesmateriagenerica/' — se deriva del scope del SW (inmune a cambios de carpeta)
 const URLS_TO_CACHE = [
     BASE_PATH,
     BASE_PATH + 'index.html',
