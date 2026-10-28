@@ -2812,7 +2812,7 @@
                     <button class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-info small mb-3"><i class="bi bi-info-circle-fill"></i> Selecciona una materia para cargarla. Se cargarán sus criterios de evaluación, reemplazando la materia actual.</div>
+                    <div class="alert alert-info small mb-3"><i class="bi bi-info-circle-fill"></i> Aquí aparecen las <b>materias guardadas en la nube</b> (criterios almacenados), accesibles a cualquier usuario logueado. Pulsa <b>"Ver criterios"</b> para consultar el listado completo de criterios de evaluación de una materia. <b>Solo el administrador</b> ve además las materias referenciadas por actividades de otros usuarios.</div>
                     <div id="fbSubjectsList"></div>
                 </div>
                 <div class="modal-footer">
@@ -2929,12 +2929,49 @@
                         </div>
                         <!-- TAB 2: Gestión de actividades -->
                         <div class="tab-pane fade" id="fbAdminActivitiesPane" role="tabpanel">
-                            <div class="alert alert-info small mb-3"><i class="bi bi-info-circle-fill"></i> Aquí se muestran todas las actividades guardadas en la nube por todos los usuarios. Puedes editar (renombrar) o eliminar cualquier actividad, independientemente de quién la haya creado.</div>
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="fw-semibold small">Actividades en la nube</span>
-                                <div class="input-group input-group-sm" style="max-width:300px;">
-                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                    <input type="text" class="form-control" id="fbAdminActSearch" placeholder="Buscar por nombre, usuario o tipo...">
+                            <div class="alert alert-info small mb-3"><i class="bi bi-info-circle-fill"></i> Aquí se muestran todas las actividades guardadas en la nube por todos los usuarios. Puedes <b>visualizar el contenido</b> (alumnado, criterios, calificaciones, rúbricas, etc.), <b>editar (renombrar)</b> o <b>eliminar</b> cualquier actividad, independientemente de quién la haya creado.</div>
+                            <!-- Filtros ágiles para identificar actividades concretas -->
+                            <div class="card mb-3" style="background:#fafbfc; border:1px solid #e8ecf1;">
+                                <div class="card-body py-2 px-3">
+                                    <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                                        <span class="fw-semibold small text-muted me-1"><i class="bi bi-funnel-fill"></i> Filtros:</span>
+                                        <select class="form-select form-select-sm" id="fbAdminActAppFilter" style="max-width:200px;">
+                                            <option value="">Todas las apps</option>
+                                            <option value="exam">Examen por preguntas</option>
+                                            <option value="test">Examen tipo test</option>
+                                            <option value="generic">Actividad por criterios</option>
+                                            <option value="instrumentos">Actividad por instrumentos</option>
+                                            <option value="ponderacion">Ponderación</option>
+                                            <option value="rubricas">Rúbricas</option>
+                                        </select>
+                                        <select class="form-select form-select-sm" id="fbAdminActKindFilter" style="max-width:180px;">
+                                            <option value="">Configuración + Calificaciones</option>
+                                            <option value="config">Solo configuración</option>
+                                            <option value="scores">Solo calificaciones</option>
+                                        </select>
+                                        <select class="form-select form-select-sm" id="fbAdminActUserFilter" style="max-width:220px;">
+                                            <option value="">Todos los usuarios</option>
+                                        </select>
+                                        <select class="form-select form-select-sm" id="fbAdminActCourseFilter" style="max-width:170px;">
+                                            <option value="">Todos los cursos</option>
+                                        </select>
+                                        <select class="form-select form-select-sm" id="fbAdminActSubjectFilter" style="max-width:220px;">
+                                            <option value="">Todas las materias</option>
+                                        </select>
+                                        <button class="btn btn-sm btn-outline-info" id="fbAdminActViewCriteriaBtn" title="Ver todos los criterios de evaluación de la materia seleccionada (incluso si la materia no está guardada explícitamente en la nube, se reconstruyen a partir de las actividades)"><i class="bi bi-list-check"></i> Ver criterios</button>
+                                        <div class="form-check form-check-inline ms-1 mb-0">
+                                            <input class="form-check-input" type="checkbox" id="fbAdminActCompleteFilter">
+                                            <label class="form-check-label small" for="fbAdminActCompleteFilter" title="Solo configuraciones que tienen calificaciones vinculadas">Solo completas</label>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-secondary" id="fbAdminActClearFiltersBtn" title="Limpiar todos los filtros"><i class="bi bi-x-circle"></i> Limpiar</button>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-semibold small">Actividades en la nube <span class="badge bg-primary" id="fbAdminActCount">0</span></span>
+                                        <div class="input-group input-group-sm" style="max-width:300px;">
+                                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                            <input type="text" class="form-control" id="fbAdminActSearch" placeholder="Buscar por nombre, usuario o tipo...">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div id="fbAdminActivitiesList"></div>
@@ -2944,6 +2981,32 @@
                 <div class="modal-footer">
                     <button class="btn btn-outline-success me-auto" id="fbUsersImportBtn" title="Importar múltiples usuarios desde el fichero Excel del personal del centro"><i class="bi bi-file-earmark-arrow-up"></i> Importar usuarios (Excel)</button>
                     <button class="btn btn-success" id="fbUsersAddBtn"><i class="bi bi-person-plus"></i> Añadir nuevo usuario</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         NUEVO: MODAL VISUALIZADOR DE ACTIVIDAD (solo admin)
+         Permite al administrador ver todo el contenido (configuración
+         + calificaciones) de cualquier actividad guardada por cualquier
+         usuario, sin necesidad de cargarla en la app. Es de solo lectura:
+         no modifica ningún estado. Incluye vista de JSON crudo.
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <div class="modal fade" id="fbAdminViewerModal" tabindex="-1" aria-labelledby="fbAdminViewerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(145deg, #0b4b6b, #0d6efd);">
+                    <h5 class="modal-title text-white" id="fbAdminViewerModalLabel"><i class="bi bi-eye-fill me-2"></i>Visualización de actividad</h5>
+                    <button class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body" id="fbAdminViewerBody">
+                    <div class="text-muted"><i class="bi bi-arrow-repeat"></i> Cargando…</div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary btn-sm" id="fbAdminViewerRawBtn" title="Ver/ocultar el JSON crudo de la actividad"><i class="bi bi-code-slash"></i> Ver JSON</button>
+                    <button class="btn btn-outline-info btn-sm" id="fbAdminViewerExportBtn" title="Exportar el JSON de la actividad a un archivo"><i class="bi bi-download"></i> Exportar JSON</button>
                     <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
@@ -3116,11 +3179,11 @@
                     <button class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-info small mb-3"><i class="bi bi-info-circle-fill"></i> Selecciona una actividad guardada para cargarla. Cada usuario ve y gestiona sus propias actividades; el administrador ve las de todos.</div>
+                    <div class="alert alert-info small mb-3"><i class="bi bi-info-circle-fill"></i> Selecciona una actividad guardada para <b>cargarla</b> o <b>visualizarla</b>. Cada usuario ve y gestiona sus propias actividades. <b>Solo el administrador</b> puede ver y gestionar las de todos los usuarios (filtro "Todas las actividades"). Los <b>criterios de las materias</b> sí son accesibles a todos los usuarios logueados desde "Cargar materia desde la nube".</div>
                     <!-- Filtro de visibilidad (solo admin) -->
                     <div class="btn-group btn-group-sm mb-2" id="fbAppLoadOwnerFilter" role="group" style="display:none;">
-                        <button type="button" class="btn btn-outline-warning active" id="fbAppLoadFilterMine" data-filter="mine"><i class="bi bi-person-fill"></i> Actividades propias</button>
-                        <button type="button" class="btn btn-outline-warning" id="fbAppLoadFilterAll" data-filter="all"><i class="bi bi-people-fill"></i> Todas las actividades</button>
+                        <button type="button" class="btn btn-outline-warning active" id="fbAppLoadFilterMine" data-filter="mine"><i class="bi bi-person-fill"></i> Mis actividades</button>
+                        <button type="button" class="btn btn-outline-warning" id="fbAppLoadFilterAll" data-filter="all"><i class="bi bi-people-fill"></i> Todas las actividades (admin)</button>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="fw-semibold">Actividades de: <span id="fbAppLoadAppLabel" class="badge bg-secondary fs-6"></span></span>
@@ -3337,24 +3400,48 @@ function loadSubjectFromJSON(file) {
             renderAllBadges();
             updateExamConfigWarning(); updateTestConfigWarning(); updateGenericConfigWarning(); inst_updateConfigButtonState();
             updateSubjectDisplay();
-            // Comprobar si la materia ya existe en la nube y advertir al usuario
-            const newSubjectId = fb_getSubjectFingerprint();
-            const existingSubject = fbAllSubjects.find(s => s.id === newSubjectId);
-            let msg = `✅ Materia "${subjectInfo.name}${subjectInfo.course ? subjectInfo.course : ''}" cargada con ${codes.length} criterios.`;
-            if (existingSubject) {
-                msg += `\n\n⚠️ Esta materia ya existe en la nube (guardada por ${existingSubject.savedByName || 'otro usuario'}). Puedes sobrescribirla usando "Guardar materia en la nube".`;
-            }
-            alert(msg);
-            // Recoger el acordeón de importación de materia a los 3 segundos
-            // El setTimeout empieza a contar DESPUÉS de que el usuario cierre el alert,
-            // para que pueda ver el resultado antes de que se recoja.
-            const collapseImport = document.getElementById('collapseImport');
-            if (collapseImport) {
-                setTimeout(() => {
-                    const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseImport, { toggle: false });
-                    bsCollapse.hide();
-                }, 3000);
-            }
+            // === AUTO-GUARDADO EN LA NUBE ===
+            // Si el usuario está logueado y la materia no existe aún en la nube,
+            // se guarda automáticamente para compartir los criterios con todos los
+            // usuarios logueados. Si ya existe, no se sobrescribe.
+            const subjectLabel = `${subjectInfo.name}${subjectInfo.course ? subjectInfo.course : ''}`;
+            fb_saveSubjectToCloudAuto().then(result => {
+                let msg = `✅ Materia "${subjectLabel}" cargada con ${codes.length} criterios.`;
+                if (result.status === 'saved') {
+                    msg += `\n\n☁️ Guardada automáticamente en la nube. Ya está disponible para todos los usuarios logueados en "Cargar materia desde la nube".`;
+                } else if (result.status === 'already_exists') {
+                    msg += `\n\nℹ️ La materia ya existía en la nube (guardada por ${result.existing.savedByName || 'otro usuario'}). No se ha sobrescrito. Puedes sobrescribirla manualmente con "Guardar materia en la nube".`;
+                } else if (result.status === 'not_logged_in') {
+                    msg += `\n\n💡 Inicia sesión para compartir automáticamente esta materia en la nube con otros usuarios.`;
+                } else if (result.status === 'not_initialized') {
+                    msg += `\n\n⚠️ No se pudo conectar con la nube (Firebase no inicializado). La materia queda solo en memoria local.`;
+                } else if (result.status === 'error') {
+                    msg += `\n\n⚠️ No se pudo guardar en la nube: ${result.error}`;
+                }
+                // 'no_data' no añade nada: la materia se cargó localmente pero no había datos suficientes para subir
+                alert(msg);
+                // Recoger el acordeón de importación de materia a los 3 segundos
+                // El setTimeout empieza a contar DESPUÉS de que el usuario cierre el alert,
+                // para que pueda ver el resultado antes de que se recoja.
+                const collapseImport = document.getElementById('collapseImport');
+                if (collapseImport) {
+                    setTimeout(() => {
+                        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseImport, { toggle: false });
+                        bsCollapse.hide();
+                    }, 3000);
+                }
+            }).catch(err => {
+                // Salvaguarda: si la Promise falla inesperadamente, mostrar al menos el alert básico
+                console.warn('Error inesperado en auto-guardado de materia:', err);
+                alert(`✅ Materia "${subjectLabel}" cargada con ${codes.length} criterios.\n\n⚠️ No se pudo guardar automáticamente en la nube (error inesperado).`);
+                const collapseImport = document.getElementById('collapseImport');
+                if (collapseImport) {
+                    setTimeout(() => {
+                        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(collapseImport, { toggle: false });
+                        bsCollapse.hide();
+                    }, 3000);
+                }
+            });
         } catch(err) { alert('Error al procesar la materia: ' + err.message); }
     };
     reader.readAsText(file);
@@ -7142,6 +7229,10 @@ let fbActiveCourseOverrideId = null; // curso fijado globalmente por el admin (o
 // === Estado de materias en la nube ===
 let fbAllSubjects = [];       // cache en memoria de materias guardadas
 let fbSubjectsUnsub = null;   // suscripción onValue para materias
+// Flag para sincronizar la materia local con la nube tras el login.
+// Se pone a true al iniciar sesión y a false cuando la primera carga
+// de fbAllSubjects lo procesa y dispara la sincronización.
+let _fbSyncLocalSubjectPending = false;
 
 // Inicializa Firebase (idempotente)
 function fb_init() {
@@ -7343,6 +7434,11 @@ function fb_onAuthStateChanged(user) {
         }
         _forceLogoutOnLoad = false; // Ya procesamos la primera carga
         if (user) {
+            // Marcar que hay que sincronizar la materia local con la nube
+            // cuando fbAllSubjects cargue por primera vez (tras fb_subscribeSubjects).
+            // Esto cumple el requisito: "cuando se loguee, toda la información
+            // que haya en local se sincronizará con la información de la nube".
+            _fbSyncLocalSubjectPending = true;
             fb_loadCurrentUserProfile(user).then(() => {
                 fb_subscribeActivities();
                 fb_subscribeSubjects();
@@ -7363,6 +7459,8 @@ function fb_onAuthStateChanged(user) {
             // Logout: cancelar listener del perfil y limpiar estado
             if (fbProfileUnsub) { try { fbProfileUnsub(); } catch(e) {} fbProfileUnsub = null; }
             fbCurrentUser = null;
+            // Cancelar flag de sincronización pendiente (no hay sesión, no hay nada que sincronizar)
+            _fbSyncLocalSubjectPending = false;
             if (fbActivitiesUnsub) { try { fbActivitiesUnsub(); } catch(e) {} fbActivitiesUnsub = null; }
             if (fbSubjectsUnsub) { try { fbSubjectsUnsub(); } catch(e) {} fbSubjectsUnsub = null; }
             if (fbUsersUnsub) { try { fbUsersUnsub(); } catch(e) {} fbUsersUnsub = null; }
@@ -7970,9 +8068,46 @@ function fb_subscribeSubjects() {
         fbAllSubjects = Object.entries(data)
             .map(([id, val]) => ({ id, ...val }))
             .filter(s => !s.appId || s.appId === FB_APP_ID);
+        // === SINCRONIZACIÓN TRAS LOGIN ===
+        // Si está pendiente la sincronización de la materia local (se puso a
+        // true al iniciar sesión), procesarla ahora que fbAllSubjects ya está
+        // cargado. Así podemos comprobar si la materia ya existe en la nube
+        // antes de guardarla (evitando sobrescribir).
+        if (_fbSyncLocalSubjectPending) {
+            _fbSyncLocalSubjectPending = false;
+            try { fb_syncLocalSubjectToCloud(); } catch(e) {
+                console.warn('[Sync] Error al sincronizar materia local tras login:', e);
+            }
+        }
         }, err => {
         console.warn('Error suscripción materias:', err);
         });
+}
+
+// === SINCRONIZACIÓN DE MATERIA LOCAL CON LA NUBE TRAS LOGIN ===
+// Se llama automáticamente cuando el usuario inicia sesión y fbAllSubjects
+// acaba de cargar. Si hay una materia cargada en local (subjectInfo), la
+// sube a la nube (si no existe ya) para compartirla con el resto de usuarios
+// logueados. Esto cumple el requisito: "cuando se loguee, toda la información
+// que haya en local se sincronizará con la información de la nube".
+function fb_syncLocalSubjectToCloud() {
+    if (!fbCurrentUser) return; // Salvaguarda: debe haber sesión
+    if (!subjectInfo || !subjectInfo.name || !subjectInfo.criteriaCodes || !subjectInfo.criteriaCodes.length) {
+        return; // No hay materia local que sincronizar
+    }
+    // Llamar al auto-guardado silencioso (comprueba si ya existe y no sobrescribe)
+    fb_saveSubjectToCloudAuto().then(result => {
+        if (result.status === 'saved') {
+            console.info('[Sync] Materia local "' + subjectInfo.name + '" sincronizada con la nube tras login.');
+        } else if (result.status === 'already_exists') {
+            console.info('[Sync] La materia local "' + subjectInfo.name + '" ya existía en la nube. No se ha sobrescrito.');
+        } else if (result.status === 'error') {
+            console.warn('[Sync] No se pudo sincronizar la materia local con la nube:', result.error);
+        }
+        // Otros estados (not_logged_in, no_data, not_initialized) son silenciosos
+    }).catch(err => {
+        console.warn('[Sync] Error inesperado al sincronizar materia local:', err);
+    });
 }
 
 // Guardar la materia actual en la nube
@@ -8012,6 +8147,58 @@ function fb_saveSubjectToCloud() {
     fbDb.ref(`${FB_SUBJECTS_PATH}/${firebaseKey}`).update(record)
         .then(() => alert(existing ? '✅ Materia actualizada en la nube.' : '✅ Materia guardada en la nube.'))
         .catch(err => alert('Error al guardar: ' + err.message));
+}
+
+// === AUTO-GUARDADO SILSENCIOSO DE MATERIA EN LA NUBE ===
+// Versión silenciosa de fb_saveSubjectToCloud: no muestra alerts ni pide
+// confirmación. Se usa al cargar un .json de materia para compartirla
+// automáticamente con todos los usuarios logueados.
+//
+// Política:
+//   - Si el usuario NO está logueado → no guarda (status: 'not_logged_in')
+//   - Si Firebase no está inicializado → no guarda (status: 'not_initialized')
+//   - Si la materia ya existe en la nube → NO sobrescribe (status: 'already_exists')
+//   - Si no hay datos válidos → no guarda (status: 'no_data')
+//   - Si no existe → la guarda (status: 'saved')
+//   - Si hay error de red → (status: 'error', error: mensaje)
+//
+// Devuelve una Promise que resuelve con { status, existing?, error? }
+function fb_saveSubjectToCloudAuto() {
+    return new Promise((resolve) => {
+        // Comprobaciones síncronas
+        if (!fbCurrentUser) { resolve({ status: 'not_logged_in' }); return; }
+        if (typeof fbDb === 'undefined' || !fbDb) { resolve({ status: 'not_initialized' }); return; }
+        if (!subjectInfo.name || !subjectInfo.criteriaCodes || !subjectInfo.criteriaCodes.length) {
+            resolve({ status: 'no_data' });
+            return;
+        }
+        const subjectId = fb_getSubjectFingerprint();
+        if (!subjectId) { resolve({ status: 'no_data' }); return; }
+        const firebaseKey = fb_getSubjectId();
+        if (!firebaseKey) { resolve({ status: 'no_data' }); return; }
+        // Comprobar si ya existe en la nube (sin sobrescribir)
+        const existing = fbAllSubjects.find(s => s.id === firebaseKey);
+        if (existing) { resolve({ status: 'already_exists', existing }); return; }
+        // Construir el registro y guardarlo
+        const now = Date.now();
+        const record = {
+            appId: FB_APP_ID,
+            name: subjectInfo.name,
+            course: subjectInfo.course || '',
+            criteriaCodes: [...subjectInfo.criteriaCodes],
+            criteriaDescriptions: Object.fromEntries(
+                Object.entries(subjectInfo.criteriaDescriptions).map(([k, v]) => [k.replace(/\./g, '_'), v])
+            ),
+            subjectId: subjectId,
+            createdAt: now,
+            updatedAt: now,
+            savedBy: fbCurrentUser.uid,
+            savedByName: fbCurrentUser.displayName
+        };
+        fbDb.ref(`${FB_SUBJECTS_PATH}/${firebaseKey}`).update(record)
+            .then(() => resolve({ status: 'saved' }))
+            .catch(err => resolve({ status: 'error', error: (err && err.message) ? err.message : String(err) }));
+    });
 }
 
 // Cargar una materia desde la nube
@@ -8066,35 +8253,78 @@ function fb_renderSubjectsModal() {
     if (!list) return;
     list.innerHTML = '';
     const isAdmin = fbCurrentUser && fbCurrentUser.role === 'admin';
-    if (fbAllSubjects.length === 0) {
-        list.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-journal-x" style="font-size:2.5rem;"></i><p class="mt-2 mb-0">Aún no hay materias guardadas en la nube.</p></div>';
+    // Los usuarios no-admin solo pueden ver las materias guardadas explícitamente
+    // en la nube (criterios almacenados). No pueden ver materias "referenciadas"
+    // reconstruidas a partir de actividades de otros usuarios (eso revelaría info
+    // sobre qué hacen otros usuarios). Solo el admin ve la lista combinada.
+    let merged;
+    if (isAdmin) {
+        // Admin: ver materias guardadas + referenciadas por actividades, con metadatos completos
+        merged = fb_getAllSubjectsMerged();
+    } else {
+        // Usuario no-admin: solo materias guardadas explícitamente (criterios almacenados)
+        merged = fbAllSubjects.map(s => ({ ...s, isSaved: true, activityCount: 0 }));
+    }
+    if (merged.length === 0) {
+        const emptyMsg = isAdmin
+            ? 'Aún no hay materias en la nube. Guarda o crea una actividad para que su materia aparezca aquí.'
+            : 'Aún no hay materias guardadas en la nube. Sube un archivo .json de materia (se guardará automáticamente) o pide a otro usuario que comparta una.';
+        list.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-journal-x" style="font-size:2.5rem;"></i><p class="mt-2 mb-0">' + escapeHtml(emptyMsg) + '</p></div>';
         return;
     }
-    // Ordenar por nombre
-    const sorted = [...fbAllSubjects].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es'));
-    sorted.forEach(s => {
+    // Ordenar por nombre (las guardadas primero si hay empate)
+    merged.sort((a, b) => {
+        const la = (a.name || 'Sin nombre') + ' ' + (a.course || '');
+        const lb = (b.name || 'Sin nombre') + ' ' + (b.course || '');
+        const cmp = la.localeCompare(lb, 'es');
+        if (cmp !== 0) return cmp;
+        return (a.isSaved === false ? 1 : -1);
+    });
+    merged.forEach(s => {
         const card = document.createElement('div');
         card.className = 'fb-activity-card';
         const updated = s.updatedAt ? new Date(s.updatedAt).toLocaleDateString('es-ES') : '—';
+        const criteriaCount = s.criteriaCodes?.length || 0;
+        // El badge de fuente (Guardada / Solo en actividades) solo es relevante para el admin,
+        // ya que los usuarios no-admin solo ven materias guardadas.
+        const sourceBadge = isAdmin
+            ? (s.isSaved === false
+                ? '<span class="badge bg-info ms-1" style="font-size:0.65em;" title="Materia no guardada explícitamente; criterios reconstruidos a partir de las actividades que la referencian"><i class="bi bi-info-circle"></i> Solo en actividades</span>'
+                : '<span class="badge bg-success ms-1" style="font-size:0.65em;" title="Materia guardada explícitamente en la nube"><i class="bi bi-cloud-check"></i> Guardada</span>')
+            : '';
+        // El conteo de actividades y la lista de usuarios solo se muestra al admin
+        // (revelaría info sobre otros usuarios).
+        const activityCountBadge = (isAdmin && (s.activityCount || 0) > 0)
+            ? ` · <i class="bi bi-clipboard-data"></i> ${s.activityCount} actividad(es)`
+            : '';
         card.innerHTML = `
             <div class="fb-act-icon"><i class="bi bi-journal-bookmark-fill"></i></div>
             <div class="fb-act-body">
                 <div class="fb-act-name">
                     ${escapeHtml(s.name || 'Sin nombre')}
                     ${s.course ? '<span class="badge bg-secondary ms-1" style="font-size:0.7em;">' + escapeHtml(s.course) + '</span>' : ''}
+                    ${sourceBadge}
                 </div>
                 <div class="fb-act-meta">
-                    <i class="bi bi-list-check"></i> ${s.criteriaCodes?.length || 0} criterios
-                    · <i class="bi bi-person"></i> ${escapeHtml(s.savedByName || 'Desconocido')}
+                    <i class="bi bi-list-check"></i> ${criteriaCount} criterios
                     · <i class="bi bi-calendar"></i> ${updated}
+                    ${activityCountBadge}
                 </div>
             </div>
             <div class="fb-act-actions">
-                <button class="fb-act-action-btn load-btn" title="Cargar esta materia"><i class="bi bi-cloud-arrow-down"></i> Cargar</button>
-                ${isAdmin ? '<button class="fb-act-action-btn delete-btn" title="Eliminar materia"><i class="bi bi-trash3"></i> Eliminar</button>' : ''}
+                <button class="fb-act-action-btn view-criteria-btn" title="Ver todos los criterios de evaluación de esta materia"><i class="bi bi-list-check"></i> Ver criterios</button>
+                ${s.isSaved !== false ? '<button class="fb-act-action-btn load-btn" title="Cargar esta materia en la app"><i class="bi bi-cloud-arrow-down"></i> Cargar</button>' : ''}
+                ${isAdmin && s.isSaved !== false ? '<button class="fb-act-action-btn delete-btn" title="Eliminar materia"><i class="bi bi-trash3"></i> Eliminar</button>' : ''}
             </div>
         `;
-        card.querySelector('.load-btn').addEventListener('click', () => fb_loadSubjectFromCloud(s));
+        // Listener para "Ver criterios" (disponible para cualquier materia, guardada o no — el admin ve referenciadas)
+        card.querySelector('.view-criteria-btn').addEventListener('click', () => {
+            // Cerrar el modal de materias para que el visualizador se vea por encima
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('fbSubjectsModal')).hide();
+            setTimeout(() => fb_viewSubjectCriteria(s.subjectId || s.id), 350);
+        });
+        const loadBtn = card.querySelector('.load-btn');
+        if (loadBtn) loadBtn.addEventListener('click', () => fb_loadSubjectFromCloud(s));
         const delBtn = card.querySelector('.delete-btn');
         if (delBtn) delBtn.addEventListener('click', () => fb_deleteSubject(s));
         list.appendChild(card);
@@ -8111,6 +8341,263 @@ function fb_openSubjectsModal() {
     }
     fb_renderSubjectsModal();
     bootstrap.Modal.getOrCreateInstance(document.getElementById('fbSubjectsModal')).show();
+}
+
+// === VISUALIZACIÓN DE CRITERIOS DE UNA MATERIA ===
+// Recopila todas las materias "referenciadas" por actividades en la nube,
+// incluso si no se han guardado explícitamente con "Guardar materia en la nube".
+// Para cada materia referenciada se reconstruye el listado de criterios a
+// partir de los globalCriteria de todas las actividades con el mismo subjectId.
+// Esto permite al admin (y a cualquier usuario logueado) ver los criterios
+// de cualquier materia aunque no esté guardada explícitamente en la nube.
+function fb_getReferencedSubjects() {
+    const map = {}; // subjectId -> { subjectId, name, course, criteriaSet, descriptions, activityCount, lastUpdated }
+    fbAllActivities.forEach(a => {
+        const sid = a.subjectId || '';
+        if (!sid) return;
+        if (!map[sid]) {
+            map[sid] = {
+                subjectId: sid,
+                name: a.subjectName || '',
+                course: a.subjectCourse || '',
+                criteriaSet: new Set(),
+                descriptions: {},
+                activityCount: 0,
+                lastUpdated: 0,
+                createdBySet: new Set(),
+                createdByNameSet: new Set()
+            };
+        }
+        const entry = map[sid];
+        entry.activityCount++;
+        if (a.subjectName) entry.name = a.subjectName;
+        if (a.subjectCourse) entry.course = a.subjectCourse;
+        const updatedAt = a.updatedAt || a.createdAt || 0;
+        if (updatedAt > entry.lastUpdated) entry.lastUpdated = updatedAt;
+        if (a.createdBy) entry.createdBySet.add(a.createdBy);
+        if (a.createdByName) entry.createdByNameSet.add(a.createdByName);
+        // Recopilar criterios de la configuración de la actividad
+        const cfg = a.data?.config || a.data || {};
+        const criteria = cfg.globalCriteria || cfg.criteria || [];
+        if (Array.isArray(criteria)) criteria.forEach(c => entry.criteriaSet.add(c));
+        // Recopilar descripciones personalizadas de criterios
+        const descMap = cfg.criteriaDescriptions || {};
+        Object.entries(descMap).forEach(([k, v]) => {
+            // Las claves pueden tener _ en vez de . (sanitización Firebase)
+            const code = k.replace(/_/g, '.');
+            if (!entry.descriptions[code]) entry.descriptions[code] = v;
+        });
+    });
+    // Convertir Sets a arrays y a listas
+    return Object.values(map).map(e => ({
+        subjectId: e.subjectId,
+        name: e.name,
+        course: e.course,
+        criteriaCodes: [...e.criteriaSet].sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
+        criteriaDescriptions: e.descriptions,
+        activityCount: e.activityCount,
+        lastUpdated: e.lastUpdated,
+        createdByCount: e.createdBySet.size,
+        createdByNameList: [...e.createdByNameSet]
+    }));
+}
+
+// Devuelve una lista combinada de materias guardadas + referenciadas por actividades.
+// Las materias guardadas tienen prioridad (sus criterios son más fiables), pero
+// se enriquecen con el conteo de actividades que las referencian. Las materias
+// solo referenciadas (no guardadas) se reconstruyen a partir de las actividades.
+function fb_getAllSubjectsMerged() {
+    const savedMap = {};
+    fbAllSubjects.forEach(s => {
+        savedMap[s.subjectId || s.id] = { ...s, isSaved: true, activityCount: 0 };
+    });
+    // Contar actividades por subjectId para las materias guardadas
+    fbAllActivities.forEach(a => {
+        const sid = a.subjectId || '';
+        if (!sid) return;
+        if (savedMap[sid]) {
+            savedMap[sid].activityCount = (savedMap[sid].activityCount || 0) + 1;
+        }
+    });
+    // Añadir materias solo referenciadas
+    const referenced = fb_getReferencedSubjects();
+    referenced.forEach(r => {
+        if (!savedMap[r.subjectId]) {
+            savedMap[r.subjectId] = { ...r, isSaved: false };
+        }
+    });
+    return Object.values(savedMap);
+}
+
+// Abre el visualizador mostrando todos los criterios de una materia.
+// subjectId: el fingerprint de la materia (o null para mostrar un mensaje)
+function fb_viewSubjectCriteria(subjectId) {
+    if (!subjectId) {
+        alert('Selecciona primero una materia en el filtro.');
+        return;
+    }
+    const isAdmin = fbCurrentUser && fbCurrentUser.role === 'admin';
+    // Buscar la materia en fbAllSubjects (guardada). Siempre accesible a cualquier
+    // usuario logueado (los criterios almacenados son compartidos).
+    const saved = fbAllSubjects.find(s => (s.subjectId || s.id) === subjectId);
+    // Las materias "referenciadas" (reconstruidas a partir de actividades) solo
+    // las puede ver el admin, ya que revelan info sobre actividades de otros usuarios.
+    let referenced = null;
+    if (isAdmin) {
+        const referencedList = fb_getReferencedSubjects();
+        referenced = referencedList.find(s => s.subjectId === subjectId);
+    }
+    if (!saved && !referenced) {
+        alert('No se encontró la materia.');
+        return;
+    }
+    // Combinar criterios: priorizar la materia guardada, pero añadir cualquier
+    // criterio extra que aparezca en actividades (solo para admin, por si la
+    // materia se actualizó)
+    const criteriaCodes = new Set();
+    const descriptions = {};
+    if (saved && Array.isArray(saved.criteriaCodes)) {
+        saved.criteriaCodes.forEach(c => criteriaCodes.add(c));
+        // Las claves de criteriaDescriptions pueden tener _ en vez de .
+        Object.entries(saved.criteriaDescriptions || {}).forEach(([k, v]) => {
+            descriptions[k.replace(/_/g, '.')] = v;
+        });
+    }
+    if (referenced) {
+        referenced.criteriaCodes.forEach(c => criteriaCodes.add(c));
+        Object.entries(referenced.criteriaDescriptions || {}).forEach(([k, v]) => {
+            if (!descriptions[k]) descriptions[k] = v;
+        });
+    }
+    const sortedCriteria = [...criteriaCodes].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    // Construir el HTML del visualizador
+    const body = document.getElementById('fbAdminViewerBody');
+    if (!body) return;
+    const subjectName = (saved?.name || referenced?.name || 'Materia sin nombre');
+    const subjectCourse = (saved?.course || referenced?.course || '');
+    const label = subjectName + (subjectCourse ? ' ' + subjectCourse : '');
+    // Metadatos: el admin ve todo; el usuario no-admin solo ve info básica
+    // (sin conteo de actividades ni lista de usuarios, que revelarían info de otros)
+    let html = `<div class="card mb-3" style="border:1px solid #e2e8f0; background:linear-gradient(135deg,#f8fafc,#eef2f7);">
+        <div class="card-body py-3 px-3">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-journal-bookmark-fill" style="font-size:1.6rem; color:#0891b2;"></i>
+                <h6 class="fw-bold mb-0" style="color:#0b4b6b;">${escapeHtml(label)}</h6>
+            </div>
+            <div class="row small g-2">
+                <div class="col-md-6"><span class="text-muted">Materia:</span> <strong>${escapeHtml(subjectName)}</strong></div>
+                <div class="col-md-6"><span class="text-muted">Curso:</span> <strong>${escapeHtml(subjectCourse || '—')}</strong></div>
+                <div class="col-md-6"><span class="text-muted">Criterios totales:</span> <strong>${sortedCriteria.length}</strong></div>
+                <div class="col-md-6"><span class="text-muted">Fuente:</span> ${saved ? '<span class="badge bg-success">Guardada en la nube</span>' : ''} ${(isAdmin && referenced) ? '<span class="badge bg-info">Referenciada por actividades</span>' : ''}</div>`;
+    // Metadatos adicionales solo para el admin (revelan info de otros usuarios)
+    if (isAdmin && referenced) {
+        html += `<div class="col-md-6"><span class="text-muted">Actividades que la usan:</span> <strong>${referenced.activityCount}</strong></div>`;
+        html += `<div class="col-md-6"><span class="text-muted">Usuarios que la usan:</span> <strong>${referenced.createdByCount}</strong> (${escapeHtml(referenced.createdByNameList.join(', ') || '—')})</div>`;
+    }
+    if (saved?.savedByName) {
+        html += `<div class="col-md-6"><span class="text-muted">Guardada por:</span> <strong>${escapeHtml(saved.savedByName || '—')}</strong></div>`;
+    }
+    if (saved?.updatedAt) {
+        html += `<div class="col-md-6"><span class="text-muted">Actualizada:</span> ${new Date(saved.updatedAt).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}</div>`;
+    }
+    html += `</div>
+        </div>
+    </div>`;
+    // Buscador de criterios
+    html += `<div class="mb-3">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="fbSubjectCritSearchInput" placeholder="Buscar criterio por código o descripción..." oninput="fb_filterSubjectCritList()">
+        </div>
+    </div>`;
+    // Listado de criterios
+    if (sortedCriteria.length === 0) {
+        html += '<div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> No se encontraron criterios para esta materia. Es posible que ninguna actividad los haya registrado.</div>';
+    } else {
+        // Agrupar por competencia (prefijo antes del último punto)
+        const groups = {};
+        sortedCriteria.forEach(code => {
+            const parts = code.split('.');
+            const key = parts.length > 1 ? parts.slice(0, -1).join('.') : code;
+            if (!groups[key]) groups[key] = [];
+            groups[key].push(code);
+        });
+        const groupKeys = Object.keys(groups).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        const competenceColors = ['#0d6efd','#198754','#fd7e14','#6f42c1','#d63384','#20c997','#0dcaf0','#ffc107','#dc3545','#6610f2'];
+        html += '<div id="fbSubjectCritListContainer">';
+        groupKeys.forEach((key, idx) => {
+            const color = competenceColors[idx % competenceColors.length];
+            html += `<div class="criteria-group" style="border-left:5px solid ${color}; background:#ffffff; border-radius:12px; padding:14px 18px; margin-bottom:14px; box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+                <div class="fw-bold mb-2" style="color:#1e293b; font-size:1.05rem;"><i class="bi bi-diagram-3 me-1" style="color:${color};"></i> ${escapeHtml(key)}</div>
+                <div class="row g-2">`;
+            groups[key].forEach(code => {
+                const desc = descriptions[code] || '';
+                html += `<div class="col-md-6 col-lg-4 fb-subject-crit-item" data-search="${escapeHtml((code + ' ' + desc).toLowerCase())}">
+                    <div class="p-2 rounded border bg-light h-100">
+                        <div class="fw-bold" style="color:#0b4b6b; font-size:0.9rem;">${escapeHtml(code)}.</div>
+                        ${desc ? `<div class="small text-muted" style="font-size:0.78rem; line-height:1.3;">${escapeHtml(desc)}</div>` : '<div class="small text-muted fst-italic" style="font-size:0.75rem;">Sin descripción</div>'}
+                    </div>
+                </div>`;
+            });
+            html += `</div></div>`;
+        });
+        html += '</div>';
+    }
+    body.innerHTML = html;
+    // Resetear el botón de JSON crudo
+    const rawPre = document.getElementById('fbAdminViewerRawPre');
+    if (rawPre) rawPre.remove();
+    const rawBtn = document.getElementById('fbAdminViewerRawBtn');
+    if (rawBtn) rawBtn.innerHTML = '<i class="bi bi-code-slash"></i> Ver JSON';
+    // Cambiar el título del modal
+    const titleEl = document.getElementById('fbAdminViewerModalLabel');
+    if (titleEl) titleEl.innerHTML = '<i class="bi bi-list-check me-2"></i>Criterios de la materia';
+    // Guardar la "actividad" actual como un objeto sintético con los criterios (para el botón Ver JSON / Exportar)
+    _fbAdminViewerCurrentActivity = {
+        name: label,
+        app: 'materia',
+        appLabel: 'Materia',
+        kind: 'subject_criteria',
+        subjectName: subjectName,
+        subjectCourse: subjectCourse,
+        subjectId: subjectId,
+        createdByName: saved?.savedByName || '',
+        createdAt: saved?.createdAt || 0,
+        updatedAt: saved?.updatedAt || referenced?.lastUpdated || 0,
+        data: {
+            config: {
+                globalCriteria: sortedCriteria,
+                criteriaDescriptions: descriptions,
+                ...(saved ? { savedSubject: saved } : {}),
+                ...(referenced ? { referencedInfo: { activityCount: referenced.activityCount, users: referenced.createdByNameList } } : {})
+            }
+        }
+    };
+    // Abrir el modal
+    const modalEl = document.getElementById('fbAdminViewerModal');
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+}
+
+// Filtra la lista de criterios de la materia según el texto del buscador
+function fb_filterSubjectCritList() {
+    const input = document.getElementById('fbSubjectCritSearchInput');
+    if (!input) return;
+    const q = (input.value || '').toLowerCase().trim();
+    const items = document.querySelectorAll('.fb-subject-crit-item');
+    let visibleCount = 0;
+    items.forEach(item => {
+        const haystack = item.dataset.search || '';
+        const visible = !q || haystack.includes(q);
+        item.style.display = visible ? '' : 'none';
+        if (visible) visibleCount++;
+    });
+    // Mostrar/ocultar los grupos según si tienen items visibles
+    document.querySelectorAll('#fbSubjectCritListContainer > .criteria-group').forEach(group => {
+        const visibleItems = group.querySelectorAll('.fb-subject-crit-item');
+        let anyVisible = false;
+        visibleItems.forEach(it => { if (it.style.display !== 'none') anyVisible = true; });
+        group.style.display = anyVisible ? '' : 'none';
+    });
 }
 
 // === GESTIÓN DE GRUPOS/CLASES POR CURSO ===
@@ -8753,20 +9240,46 @@ function fb_renderUsers() {
 }
 
 // === RENDERIZADO DE ACTIVIDADES (panel admin) ===
-// Lista TODAS las actividades de todos los usuarios con opciones de editar/eliminar
+// Lista TODAS las actividades de todos los usuarios con opciones de visualizar, editar y eliminar
 function fb_renderAdminActivities() {
     const list = document.getElementById('fbAdminActivitiesList');
     if (!list) return;
     list.innerHTML = '';
-    // Mostrar todas las actividades (configs y scores) de todos los usuarios
-    const search = (document.getElementById('fbAdminActSearch')?.value || '').toLowerCase().trim();
+    // Sincronizar las opciones de los filtros de usuario, curso y materia con los datos actuales
+    fb_adminSyncActivityFilterOptions();
+    // Recoger valores de los filtros ágiles
+    const search       = (document.getElementById('fbAdminActSearch')?.value || '').toLowerCase().trim();
+    const appFilter    = document.getElementById('fbAdminActAppFilter')?.value || '';
+    const kindFilter   = document.getElementById('fbAdminActKindFilter')?.value || '';
+    const userFilter   = document.getElementById('fbAdminActUserFilter')?.value || '';
+    const courseFilter = document.getElementById('fbAdminActCourseFilter')?.value || '';
+    const subjFilter   = document.getElementById('fbAdminActSubjectFilter')?.value || '';
+    const onlyComplete = document.getElementById('fbAdminActCompleteFilter')?.checked || false;
+    // Partir de todas las actividades y aplicar filtros en cascada
     let activities = [...fbAllActivities];
+    if (appFilter)    activities = activities.filter(a => a.app === appFilter);
+    if (kindFilter)  activities = activities.filter(a => (a.kind || 'config') === kindFilter);
+    if (userFilter)  activities = activities.filter(a => a.createdBy === userFilter);
+    if (courseFilter) activities = activities.filter(a => fb_resolveRecordCourseId(a) === courseFilter);
+    if (subjFilter)   activities = activities.filter(a => (a.subjectId || '') === subjFilter);
+    if (onlyComplete) {
+        // Solo configuraciones que tienen al menos un set de calificaciones vinculado
+        activities = activities.filter(a => {
+            if (a.kind === 'scores') return false; // las scores no son "completas" por sí mismas
+            const configId = fb_getConfigFingerprintForRecord(a);
+            if (!configId) return false;
+            return fbAllActivities.some(s => s.kind === 'scores' && s.app === a.app && s.configId === configId);
+        });
+    }
     if (search) {
         activities = activities.filter(a => {
             const hay = ((a.name || '') + ' ' + (a.appLabel || '') + ' ' + (a.createdByName || '') + ' ' + (a.className || '') + ' ' + (a.kind || '')).toLowerCase();
             return hay.includes(search);
         });
     }
+    // Actualizar contador
+    const countBadge = document.getElementById('fbAdminActCount');
+    if (countBadge) countBadge.textContent = activities.length;
     // Ordenar por updatedAt desc
     activities.sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
 
@@ -8788,7 +9301,23 @@ function fb_renderAdminActivities() {
         // Curso al que pertenece el registro (los datos están aislados por curso)
         const recCourse = fbAllCourses.find(c => c.id === fb_resolveRecordCourseId(a));
         const courseBadge = recCourse ? `<span class="badge bg-dark ms-1" style="font-size:0.65em;" title="Curso académico"><i class="bi bi-calendar3"></i> ${escapeHtml(recCourse.label)}</span>` : '';
+        // Materia (si la actividad está vinculada a una)
+        const subjBadge = a.subjectName ? `<span class="badge bg-success ms-1" style="font-size:0.65em;" title="Materia"><i class="bi bi-journal-bookmark"></i> ${escapeHtml(a.subjectName)}${a.subjectCourse ? ' ' + escapeHtml(a.subjectCourse) : ''}</span>` : '';
         const iconClass = a.app === 'rubricas' ? 'bi-grid-1x2' : (a.app === 'exam' ? 'bi-pencil-square' : (a.app === 'test' ? 'bi-calculator' : (a.app === 'instrumentos' ? 'bi-grid-3x3-gap' : (a.app === 'ponderacion' ? 'bi-layers-half' : 'bi-check2-circle'))));
+        // Para configuraciones, indicar si tiene calificaciones vinculadas (actividad completa)
+        let completoBadge = '';
+        if (a.kind !== 'scores') {
+            const configId = fb_getConfigFingerprintForRecord(a);
+            if (configId) {
+                const linkedCount = fbAllActivities.filter(s => s.kind === 'scores' && s.app === a.app && s.configId === configId).length;
+                if (linkedCount > 0) {
+                    completoBadge = ` <span class="badge bg-success ms-1" style="font-size:0.65em;" title="${linkedCount} set(s) de calificaciones vinculados"><i class="bi bi-clipboard-check"></i> ${linkedCount} calif.</span>`;
+                }
+            }
+        }
+        // Datos para tarjetas resumen rápidas
+        const criteriaCount = a.data?.config?.globalCriteria?.length || a.data?.globalCriteria?.length || a.data?.criteria?.length || 0;
+        const studentCount = a.data?.config?.students?.length || a.data?.students?.length || a.data?.scores?.students?.length || 0;
         card.innerHTML = `
             <div class="fb-act-icon"><i class="bi ${iconClass}"></i></div>
             <div class="fb-act-body">
@@ -8798,22 +9327,772 @@ function fb_renderAdminActivities() {
                     ${kindLabel}
                     ${classBadge}
                     ${courseBadge}
+                    ${subjBadge}
+                    ${completoBadge}
                 </div>
                 <div class="fb-act-meta">
                     <i class="bi bi-person"></i> ${escapeHtml(a.createdByName || 'Desconocido')}
                     · <i class="bi bi-calendar"></i> ${created}
                     · <i class="bi bi-arrow-clockwise"></i> ${updated}
+                    ${criteriaCount > 0 ? `· <i class="bi bi-check2-square"></i> ${criteriaCount} criterios` : ''}
+                    ${studentCount > 0 ? `· <i class="bi bi-people"></i> ${studentCount} alumnos` : ''}
                 </div>
             </div>
             <div class="fb-act-actions">
+                <button class="fb-act-action-btn view-btn" title="Visualizar contenido (alumnado, criterios, calificaciones, rúbricas, etc.)"><i class="bi bi-eye"></i> Ver</button>
                 <button class="fb-act-action-btn rename-btn" title="Renombrar"><i class="bi bi-pencil"></i> Editar</button>
                 <button class="fb-act-action-btn delete-btn" title="Eliminar"><i class="bi bi-trash3"></i> Eliminar</button>
             </div>
         `;
+        card.querySelector('.view-btn').addEventListener('click', () => fb_adminViewActivity(a));
         card.querySelector('.rename-btn').addEventListener('click', () => fb_openRenameModal(a));
         card.querySelector('.delete-btn').addEventListener('click', () => fb_deleteActivity(a).then(() => fb_renderAdminActivities()));
         list.appendChild(card);
     });
+}
+
+// Rellena dinámicamente las opciones de los filtros de usuario, curso y materia
+// con los valores presentes en fbAllActivities / fbAllUsers / fbAllCourses / fbAllSubjects
+function fb_adminSyncActivityFilterOptions() {
+    try {
+        // Filtro de usuario: lista de creadores de actividades (con nombre)
+        const userSel = document.getElementById('fbAdminActUserFilter');
+        if (userSel) {
+            const currentValue = userSel.value || '';
+            const creators = {};
+            fbAllActivities.forEach(a => {
+                if (a.createdBy && !creators[a.createdBy]) {
+                    creators[a.createdBy] = a.createdByName || 'Usuario';
+                }
+            });
+            // Construir opciones ordenadas por nombre
+            const opts = ['<option value="">Todos los usuarios</option>'];
+            Object.entries(creators).sort((a, b) => (a[1] || '').localeCompare(b[1] || '', 'es')).forEach(([uid, name]) => {
+                opts.push(`<option value="${escapeHtml(uid)}">${escapeHtml(name)}</option>`);
+            });
+            const newHtml = opts.join('');
+            // Solo reemplazar si cambió (evita perder la selección activa en cada render)
+            if (userSel.innerHTML !== newHtml) {
+                userSel.innerHTML = newHtml;
+                userSel.value = currentValue;
+            }
+        }
+        // Filtro de curso: lista de cursos académicos
+        const courseSel = document.getElementById('fbAdminActCourseFilter');
+        if (courseSel) {
+            const currentValue = courseSel.value || '';
+            const opts = ['<option value="">Todos los cursos</option>'];
+            [...fbAllCourses].sort((a, b) => fb_compareCourses(a.label, b.label)).forEach(c => {
+                opts.push(`<option value="${escapeHtml(c.id)}">${escapeHtml(c.label)}${c.archived ? ' (archivado)' : ''}</option>`);
+            });
+            const newHtml = opts.join('');
+            if (courseSel.innerHTML !== newHtml) {
+                courseSel.innerHTML = newHtml;
+                courseSel.value = currentValue;
+            }
+        }
+        // Filtro de materia: lista de materias guardadas + referenciadas por actividades.
+        // Se incluyen las materias que NO están guardadas explícitamente en la nube
+        // pero que aparecen referenciadas por actividades (reconstruidas a partir de
+        // los globalCriteria de esas actividades). Esto permite al admin ver y filtrar
+        // por cualquier materia aunque no se haya guardado con "Guardar materia en la nube".
+        const subjSel = document.getElementById('fbAdminActSubjectFilter');
+        if (subjSel) {
+            const currentValue = subjSel.value || '';
+            const opts = ['<option value="">Todas las materias</option>'];
+            // Combinar materias guardadas y referenciadas (deduplicando por subjectId)
+            const merged = fb_getAllSubjectsMerged();
+            merged.sort((a, b) => {
+                const la = (a.name || 'Sin nombre') + ' ' + (a.course || '');
+                const lb = (b.name || 'Sin nombre') + ' ' + (b.course || '');
+                return la.localeCompare(lb, 'es');
+            }).forEach(s => {
+                const label = `${s.name || 'Sin nombre'}${s.course ? ' ' + s.course : ''}${s.isSaved === false ? ' (solo en actividades)' : ''}`;
+                opts.push(`<option value="${escapeHtml(s.subjectId || s.id)}">${escapeHtml(label)}</option>`);
+            });
+            const newHtml = opts.join('');
+            if (subjSel.innerHTML !== newHtml) {
+                subjSel.innerHTML = newHtml;
+                subjSel.value = currentValue;
+            }
+        }
+    } catch(e) {
+        console.warn('Error sincronizando opciones de filtros admin:', e);
+    }
+}
+
+// === VISUALIZADOR DE ACTIVIDAD (disponible para todos los usuarios logueados; solo lectura) ===
+// Muestra en el modal fbAdminViewerModal todo el contenido de la actividad:
+// configuración (alumnado, criterios, preguntas, instrumentos, aspectos...)
+// y, si aplica, calificaciones y resultados. No modifica el estado de la app.
+// Cualquier usuario logueado puede visualizar cualquier actividad guardada
+// en la nube (no solo las propias), cumpliendo el requisito de que los
+// criterios de evaluación introducidos por cada usuario sean accesibles
+// para el resto de usuarios logueados.
+let _fbAdminViewerCurrentActivity = null;
+
+function fb_adminViewActivity(activity) {
+    if (!activity) return;
+    _fbAdminViewerCurrentActivity = activity;
+    const body = document.getElementById('fbAdminViewerBody');
+    if (!body) return;
+    const app = activity.app;
+    const kind = activity.kind || 'config';
+    const appLabel = activity.appLabel || FB_APP_LABELS[app] || app;
+    const data = activity.data || {};
+    // Cabecera con metadatos
+    const created = activity.createdAt ? new Date(activity.createdAt).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+    const updated = activity.updatedAt ? new Date(activity.updatedAt).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+    const course = fbAllCourses.find(c => c.id === fb_resolveRecordCourseId(activity));
+    const subjectName = activity.subjectName || (activity.subjectId ? '(sin nombre)' : '—');
+    const subjectCourse = activity.subjectCourse || '';
+    const iconClass = app === 'rubricas' ? 'bi-grid-1x2' : (app === 'exam' ? 'bi-pencil-square' : (app === 'test' ? 'bi-calculator' : (app === 'instrumentos' ? 'bi-grid-3x3-gap' : (app === 'ponderacion' ? 'bi-layers-half' : 'bi-check2-circle'))));
+    let html = `<div class="card mb-3" style="border:1px solid #e2e8f0; background:linear-gradient(135deg,#f8fafc,#eef2f7);">
+        <div class="card-body py-3 px-3">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi ${iconClass}" style="font-size:1.6rem; color:#0d6efd;"></i>
+                <h6 class="fw-bold mb-0" style="color:#0b4b6b;">${escapeHtml(activity.name || 'Sin nombre')}</h6>
+            </div>
+            <div class="row small g-2">
+                <div class="col-md-6"><span class="text-muted">Tipo de app:</span> <span class="badge bg-secondary">${escapeHtml(appLabel)}</span> <span class="badge ${kind === 'scores' ? 'bg-info' : 'bg-secondary'}">${kind === 'scores' ? 'Calificaciones' : 'Configuración'}</span></div>
+                <div class="col-md-6"><span class="text-muted">Usuario:</span> <strong>${escapeHtml(activity.createdByName || 'Desconocido')}</strong></div>
+                <div class="col-md-6"><span class="text-muted">Curso académico:</span> <strong>${escapeHtml(course ? course.label : '—')}</strong></div>
+                <div class="col-md-6"><span class="text-muted">Grupo / Clase:</span> <strong>${escapeHtml(activity.className || '—')}</strong></div>
+                <div class="col-md-6"><span class="text-muted">Materia:</span> <strong>${escapeHtml(subjectName)}${subjectCourse ? ' ' + escapeHtml(subjectCourse) : ''}</strong></div>
+                <div class="col-md-6"><span class="text-muted">Creada:</span> ${created}</div>
+                <div class="col-md-6"><span class="text-muted">Actualizada:</span> ${updated}</div>
+            </div>
+        </div>
+    </div>`;
+    // Si es configuración con calificaciones vinculadas, mostrar aviso + acceso rápido
+    if (kind !== 'scores') {
+        const configId = fb_getConfigFingerprintForRecord(activity);
+        if (configId) {
+            const linkedScores = fbAllActivities.filter(s => s.kind === 'scores' && s.app === activity.app && s.configId === configId);
+            if (linkedScores.length > 0) {
+                html += `<div class="alert alert-success small py-2 px-3 mb-3"><i class="bi bi-clipboard-check-fill"></i> Esta configuración tiene <strong>${linkedScores.length}</strong> set(s) de calificaciones vinculados en la nube. Puedes visualizarlos desde el listado (filtro "Solo calificaciones").</div>`;
+            }
+        }
+    }
+    // Contenido específico según tipo de app
+    html += fb_adminRenderActivityContent(activity, app, kind, data);
+    body.innerHTML = html;
+    // Resetear la vista JSON crudo (siempre oculta al abrir) y la etiqueta del botón
+    const rawPre = document.getElementById('fbAdminViewerRawPre');
+    if (rawPre) rawPre.remove(); // se eliminó al reemplazar innerHTML, pero por si acaso
+    const rawBtn = document.getElementById('fbAdminViewerRawBtn');
+    if (rawBtn) rawBtn.innerHTML = '<i class="bi bi-code-slash"></i> Ver JSON';
+    // Restaurar el título del modal (pudo haber cambiado al visualizar criterios de materia)
+    const titleEl = document.getElementById('fbAdminViewerModalLabel');
+    if (titleEl) titleEl.innerHTML = '<i class="bi bi-eye-fill me-2"></i>Visualización de actividad';
+    // Abrir el modal
+    const modalEl = document.getElementById('fbAdminViewerModal');
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+}
+
+// Renderiza el contenido específico según el tipo de app y kind (config/scores)
+function fb_adminRenderActivityContent(activity, app, kind, data) {
+    try {
+        if (app === 'exam')         return fb_adminRenderExam(activity, kind, data);
+        if (app === 'test')        return fb_adminRenderTest(activity, kind, data);
+        if (app === 'generic')     return fb_adminRenderGeneric(activity, kind, data);
+        if (app === 'instrumentos') return fb_adminRenderInstrumentos(activity, kind, data);
+        if (app === 'rubricas')    return fb_adminRenderRubricas(activity, kind, data);
+        if (app === 'ponderacion') return fb_adminRenderPonderacion(activity, kind, data);
+        return '<div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> Tipo de actividad no reconocido.</div>';
+    } catch(e) {
+        return '<div class="alert alert-danger"><i class="bi bi-x-octagon-fill"></i> Error al visualizar: ' + escapeHtml(e.message) + '</div>';
+    }
+}
+
+// Busca la configuración vinculada a un registro de calificaciones.
+// Los registros de tipo "scores" no incluyen toda la metainformación
+// (preguntas del examen, penalización del test, etc.) porque se guarda
+// aparte en el registro "config" vinculado por configId. Esta función
+// resuelve el registro de configuración correspondiente para que el
+// visualizador pueda mostrar metadatos completos.
+function fb_adminGetLinkedConfig(activity) {
+    if (!activity) return null;
+    // Si la propia actividad es una config, devolverla tal cual
+    if (activity.kind === 'config' || (!activity.kind && activity.data && activity.data.config)) return activity;
+    // Buscar por configId en fbAllActivities
+    const configId = activity.configId || fb_getConfigFingerprintForRecord(activity);
+    if (!configId) return null;
+    return fbAllActivities.find(a =>
+        (a.kind || 'config') === 'config' &&
+        a.app === activity.app &&
+        fb_getConfigFingerprintForRecord(a) === configId
+    ) || null;
+}
+
+// === Helpers de visualización comunes ===
+
+// Genera las "chips" (etiquetas) para una lista de strings
+function fb_adminRenderChips(items, emptyMsg) {
+    if (!items || !items.length) return `<span class="text-muted small"><i class="bi bi-info-circle"></i> ${escapeHtml(emptyMsg || 'Ninguno')}</span>`;
+    return items.map(i => `<span class="badge bg-light text-dark border me-1 mb-1" style="font-size:0.78rem;">${escapeHtml(String(i))}</span>`).join('');
+}
+
+// Genera una tabla con cabecera + filas, dentro de un div.table-responsive
+function fb_adminRenderTable(headers, rows, opts) {
+    opts = opts || {};
+    const cls = opts.tableClass || 'table table-sm table-bordered table-hover align-middle';
+    const thStyle = opts.thStyle || 'background:#f1f5f9; text-align:center; vertical-align:middle; font-size:0.8rem;';
+    const tdStyle = opts.tdStyle || 'text-align:center; vertical-align:middle; font-size:0.85rem;';
+    const headHtml = '<tr>' + headers.map(h => `<th style="${thStyle}">${escapeHtml(String(h))}</th>`).join('') + '</tr>';
+    const bodyHtml = rows.map(r => {
+        if (Array.isArray(r)) {
+            return '<tr>' + r.map(c => `<td style="${tdStyle}">${c === null || c === undefined ? '<span class="text-muted">—</span>' : c}</td>`).join('') + '</tr>';
+        }
+        return '<tr>' + headers.map(h => `<td style="${tdStyle}">${r[h] === null || r[h] === undefined ? '<span class="text-muted">—</span>' : r[h]}</td>`).join('') + '</tr>';
+    }).join('');
+    return `<div class="table-responsive"><table class="${cls}"><thead>${headHtml}</thead><tbody>${bodyHtml}</tbody></table></div>`;
+}
+
+// Color de fondo para una nota de 0 a 10 (escala verde-amarillo-rojo claro)
+function fb_adminGradeColor(v) {
+    const n = parseFloat(v);
+    if (isNaN(n)) return '';
+    // 0 = rojo claro, 5 = amarillo, 10 = verde claro
+    const hue = Math.max(0, Math.min(10, n)) * 12; // 0..120
+    return `hsl(${hue}, 75%, 80%)`;
+}
+
+// === EXAMEN POR PREGUNTAS ===
+function fb_adminRenderExam(activity, kind, data) {
+    const cfg = data.config || data;
+    // Para registros de tipo "scores", la metainformación de las preguntas
+    // no está embebida: se guarda en el registro "config" vinculado.
+    // Lo buscamos por configId para mostrar la tabla completa con criterios.
+    const linkedCfg = (kind === 'scores') ? fb_adminGetLinkedConfig(activity) : null;
+    const linkedData = linkedCfg ? (linkedCfg.data || {}) : {};
+    const linkedConfig = linkedData.config || linkedData || {};
+    let html = '<h6 class="fw-bold mt-2 mb-2" style="color:#0b4b6b;"><i class="bi bi-pencil-square me-1"></i>Examen por preguntas</h6>';
+    if (kind === 'config' || kind === 'scores') {
+        // Resumen
+        const questions = cfg.questions || linkedConfig.questions || [];
+        const globalCriteria = cfg.globalCriteria || linkedConfig.globalCriteria || [];
+        const students = cfg.students || [];
+        const totalMax = questions.reduce((s, q) => s + (parseFloat(q.maxScore) || 0), 0);
+        html += `<div class="row g-2 mb-3 small">
+            <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Preguntas</span><strong>${questions.length}</strong></div></div>
+            <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Puntuación total</span><strong>${fb_adminFormatNum(totalMax)}</strong></div></div>
+            <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Criterios</span><strong>${globalCriteria.length}</strong></div></div>
+            <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Alumnado</span><strong>${students.length}</strong></div></div>
+        </div>`;
+        html += `<div class="mb-2"><strong class="small text-muted">Nombre del examen:</strong> ${escapeHtml(cfg.examName || linkedConfig.examName || '—')}</div>`;
+        html += `<div class="mb-2"><strong class="small text-muted">Curso:</strong> ${escapeHtml(cfg.course || linkedConfig.course || '—')}</div>`;
+        if (linkedCfg && kind === 'scores') {
+            html += `<div class="alert alert-info small py-1 px-3 mb-2"><i class="bi bi-info-circle"></i> Metadatos (preguntas y criterios) obtenidos de la configuración vinculada "<strong>${escapeHtml(linkedCfg.name || '')}</strong>".</div>`;
+        }
+        // Criterios de la materia
+        html += `<div class="mb-3"><strong class="small text-muted">Criterios seleccionados:</strong><div class="mt-1">${fb_adminRenderChips(globalCriteria, 'Sin criterios')}</div></div>`;
+        // Tabla de preguntas
+        if (questions.length) {
+            const headers = ['#', 'Nombre', 'Descripción', 'Máx', 'Criterios'];
+            const rows = questions.map((q, i) => [
+                i + 1,
+                escapeHtml(q.name || `P${q.id}`),
+                q.description ? `<span class="small text-muted">${escapeHtml(q.description)}</span>` : '<span class="text-muted">—</span>',
+                `<strong>${fb_adminFormatNum(q.maxScore)}</strong>`,
+                q.criteriaCodes && q.criteriaCodes.length ? q.criteriaCodes.map(c => `<span class="badge bg-primary me-1" style="font-size:0.65em;">${escapeHtml(c)}.</span>`).join('') : '<span class="text-muted">—</span>'
+            ]);
+            html += '<div class="mb-3"><strong class="small text-muted">Preguntas:</strong>' + fb_adminRenderTable(headers, rows) + '</div>';
+        }
+        // Alumnado
+        if (students.length) {
+            html += `<div class="mb-3"><strong class="small text-muted">Alumnado (${students.length}):</strong><div class="mt-1">${fb_adminRenderChips(students.map(s => s.fullName || s), 'Sin alumnos')}</div></div>`;
+        }
+    }
+    // Si hay calificaciones (kind === 'scores' o config con datos embebidos)
+    const sc = data.scores || (kind === 'scores' ? data : null);
+    if (sc && sc.students && sc.students.length) {
+        const questions = cfg.questions || linkedConfig.questions || [];
+        const globalCriteria = cfg.globalCriteria || linkedConfig.globalCriteria || [];
+        const scores = sc.scores || [];
+        if (!questions.length) {
+            // Sin metadatos de preguntas: mostrar tabla simple de números
+            html += '<div class="mt-3"><h6 class="fw-bold" style="color:#0b4b6b;"><i class="bi bi-clipboard-check me-1"></i>Calificaciones</h6>';
+            html += '<div class="alert alert-warning small py-2 px-3"><i class="bi bi-exclamation-triangle"></i> No se encontró la configuración vinculada con las preguntas. Se muestran las calificaciones en bruto (sin etiquetas ni cálculo por criterio).</div>';
+            // Construir tabla con columnas genéricas P1, P2, ... basadas en la longitud de la primera fila
+            const nCols = (scores[0] || []).length;
+            const headers = ['Alumno'].concat(Array.from({length: nCols}, (_, i) => `P${i+1}`));
+            const rows = sc.students.map((name, sIdx) => {
+                const row = [escapeHtml(name)];
+                for (let j = 0; j < nCols; j++) {
+                    const val = scores[sIdx] && scores[sIdx][j] !== undefined ? scores[sIdx][j] : null;
+                    row.push(val !== null && val !== '' ? `<strong>${fb_adminFormatNum(val)}</strong>` : '<span class="text-muted">—</span>');
+                }
+                return row;
+            });
+            html += fb_adminRenderTable(headers, rows);
+            html += '</div>';
+        } else {
+            html += '<div class="mt-3"><h6 class="fw-bold" style="color:#0b4b6b;"><i class="bi bi-clipboard-check me-1"></i>Calificaciones</h6>';
+            // Cabecera de tabla: Alumno | P1 | P2 | ... | Criterio1 | Criterio2 | ... | Calificación
+            const headers = ['Alumno'];
+            questions.forEach((q, i) => headers.push(q.name || `P${q.id}`));
+            globalCriteria.forEach(c => headers.push(c + '.'));
+            headers.push('Calificación');
+            const rows = sc.students.map((name, sIdx) => {
+                const row = [escapeHtml(name)];
+                // Notas por pregunta
+                questions.forEach((q, qIdx) => {
+                    const val = scores[sIdx] && scores[sIdx][qIdx] !== undefined ? scores[sIdx][qIdx] : null;
+                    const max = parseFloat(q.maxScore) || 10;
+                    const color = val !== null && val !== '' ? fb_adminGradeColor((parseFloat(val) / max) * 10) : '';
+                    row.push(val !== null && val !== '' ? `<strong style="background:${color}; padding:2px 6px; border-radius:6px;">${fb_adminFormatNum(val)}</strong>` : '<span class="text-muted">—</span>');
+                });
+                // Nota por criterio
+                globalCriteria.forEach(crit => {
+                    const qIdx = questions.reduce((acc, q, i) => q.criteriaCodes && q.criteriaCodes.includes(crit) ? [...acc, i] : acc, []);
+                    if (qIdx.length) {
+                        let sN = 0, sM = 0;
+                        qIdx.forEach(i => { sN += parseFloat(scores[sIdx]?.[i]) || 0; sM += parseFloat(questions[i].maxScore) || 0; });
+                        const nota = sM > 0 ? Math.round((sN / sM) * 10 * 100) / 100 : 0;
+                        row.push(`<strong style="background:${fb_adminGradeColor(nota)}; padding:2px 6px; border-radius:6px;">${fb_adminFormatNum(nota)}</strong>`);
+                    } else {
+                        row.push('<span class="text-muted">—</span>');
+                    }
+                });
+                // Calificación global
+                let cnt = 0, sum = 0;
+                globalCriteria.forEach(crit => {
+                    const qIdx = questions.reduce((acc, q, i) => q.criteriaCodes && q.criteriaCodes.includes(crit) ? [...acc, i] : acc, []);
+                    if (qIdx.length) {
+                        let sN = 0, sM = 0;
+                        qIdx.forEach(i => { sN += parseFloat(scores[sIdx]?.[i]) || 0; sM += parseFloat(questions[i].maxScore) || 0; });
+                        if (sM > 0) { sum += (sN / sM) * 10; cnt++; }
+                    }
+                });
+                const grade = cnt > 0 ? (sum / cnt) : 0;
+                row.push(`<strong style="background:${fb_adminGradeColor(grade)}; padding:3px 8px; border-radius:6px; font-size:1rem;">${fb_adminFormatNum(grade)}</strong>`);
+                return row;
+            });
+            html += fb_adminRenderTable(headers, rows);
+            html += '</div>';
+        }
+    }
+    return html;
+}
+
+// === EXAMEN TIPO TEST ===
+function fb_adminRenderTest(activity, kind, data) {
+    const cfg = data.config || data;
+    // Para registros "scores" de test, buscar la config vinculada
+    // (contiene totalQuestions, penaltyFactor y globalCriteria)
+    const linkedCfg = (kind === 'scores') ? fb_adminGetLinkedConfig(activity) : null;
+    const linkedData = linkedCfg ? (linkedCfg.data || {}) : {};
+    const linkedConfig = linkedData.config || linkedData || {};
+    let html = '<h6 class="fw-bold mt-2 mb-2" style="color:#0b4b6b;"><i class="bi bi-calculator me-1"></i>Examen tipo test</h6>';
+    if (kind === 'config' || kind === 'scores') {
+        const totalQ = cfg.totalQuestions || linkedConfig.totalQuestions || 0;
+        const pen = cfg.penaltyFactor !== undefined ? cfg.penaltyFactor : linkedConfig.penaltyFactor;
+        const globalCriteria = cfg.globalCriteria || linkedConfig.globalCriteria || [];
+        const students = cfg.students || [];
+        const penLabel = (pen && pen > 0) ? `Fallo resta ${pen} del acierto` : 'Sin penalización';
+        html += `<div class="row g-2 mb-3 small">
+            <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Preguntas</span><strong>${totalQ}</strong></div></div>
+            <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Penalización</span><strong>${escapeHtml(penLabel)}</strong></div></div>
+            <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Criterios</span><strong>${globalCriteria.length}</strong></div></div>
+            <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Alumnado</span><strong>${students.length}</strong></div></div>
+        </div>`;
+        html += `<div class="mb-2"><strong class="small text-muted">Nombre del test:</strong> ${escapeHtml(cfg.examName || linkedConfig.examName || '—')}</div>`;
+        html += `<div class="mb-2"><strong class="small text-muted">Curso:</strong> ${escapeHtml(cfg.course || linkedConfig.course || '—')}</div>`;
+        if (linkedCfg && kind === 'scores') {
+            html += `<div class="alert alert-info small py-1 px-3 mb-2"><i class="bi bi-info-circle"></i> Metadatos (preguntas, penalización y criterios) obtenidos de la configuración vinculada "<strong>${escapeHtml(linkedCfg.name || '')}</strong>".</div>`;
+        }
+        html += `<div class="mb-3"><strong class="small text-muted">Criterios seleccionados:</strong><div class="mt-1">${fb_adminRenderChips(globalCriteria, 'Sin criterios')}</div></div>`;
+        if (students.length) {
+            html += `<div class="mb-3"><strong class="small text-muted">Alumnado (${students.length}):</strong><div class="mt-1">${fb_adminRenderChips(students.map(s => s.fullName || s), 'Sin alumnos')}</div></div>`;
+        }
+    }
+    const sc = data.scores || (kind === 'scores' ? data : null);
+    if (sc && sc.students && sc.students.length) {
+        const totalQ = cfg.totalQuestions || linkedConfig.totalQuestions || 0;
+        const pen = (cfg.penaltyFactor !== undefined ? cfg.penaltyFactor : linkedConfig.penaltyFactor) || 0;
+        const criteria = cfg.globalCriteria || linkedConfig.globalCriteria || [];
+        const computeGrade = (correct, wrong) => {
+            const c = Math.max(0, parseInt(correct, 10) || 0);
+            const w = Math.max(0, parseInt(wrong, 10) || 0);
+            if (totalQ <= 0) return 0;
+            const v = 10 / totalQ;
+            return Math.round(Math.max(0, Math.min(10, c * v - w * v * pen)) * 100) / 100;
+        };
+        html += '<div class="mt-3"><h6 class="fw-bold" style="color:#0b4b6b;"><i class="bi bi-clipboard-check me-1"></i>Calificaciones</h6>';
+        const headers = ['Alumno', 'Aciertos', 'Fallos', 'NS/NC', 'Nota'].concat(criteria.map(c => c + '.'));
+        const rows = sc.students.map((name, sIdx) => {
+            const ss = sc.studentScores && sc.studentScores[sIdx] ? sc.studentScores[sIdx] : { correct: 0, wrong: 0, unanswered: 0 };
+            const correct = parseInt(ss.correct, 10) || 0;
+            const wrong = parseInt(ss.wrong, 10) || 0;
+            const unanswered = totalQ > 0 ? (totalQ - correct - wrong) : 0;
+            const grade = computeGrade(correct, wrong);
+            const row = [
+                escapeHtml(name),
+                `<strong style="color:#198754;">${correct}</strong>`,
+                `<strong style="color:#dc3545;">${wrong}</strong>`,
+                `<span class="text-muted">${unanswered}</span>`,
+                `<strong style="background:${fb_adminGradeColor(grade)}; padding:3px 8px; border-radius:6px;">${fb_adminFormatNum(grade)}</strong>`
+            ];
+            criteria.forEach(c => row.push(`<strong style="background:${fb_adminGradeColor(grade)}; padding:2px 6px; border-radius:6px;">${fb_adminFormatNum(grade)}</strong>`));
+            return row;
+        });
+        html += fb_adminRenderTable(headers, rows);
+        html += '</div>';
+    }
+    return html;
+}
+
+// === ACTIVIDAD POR CRITERIOS (GENÉRICA) ===
+function fb_adminRenderGeneric(activity, kind, data) {
+    const cfg = data.config || data;
+    let html = '<h6 class="fw-bold mt-2 mb-2" style="color:#0b4b6b;"><i class="bi bi-check2-circle me-1"></i>Actividad por criterios</h6>';
+    if (kind === 'config' || kind === 'scores') {
+        html += `<div class="row g-2 mb-3 small">
+            <div class="col-md-4"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Criterios</span><strong>${(cfg.globalCriteria || []).length}</strong></div></div>
+            <div class="col-md-4"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Alumnado</span><strong>${(cfg.students || []).length}</strong></div></div>
+        </div>`;
+        html += `<div class="mb-2"><strong class="small text-muted">Nombre:</strong> ${escapeHtml(cfg.examName || '—')}</div>`;
+        html += `<div class="mb-2"><strong class="small text-muted">Curso:</strong> ${escapeHtml(cfg.course || '—')}</div>`;
+        html += `<div class="mb-3"><strong class="small text-muted">Criterios seleccionados:</strong><div class="mt-1">${fb_adminRenderChips(cfg.globalCriteria, 'Sin criterios')}</div></div>`;
+        if (cfg.students && cfg.students.length) {
+            html += `<div class="mb-3"><strong class="small text-muted">Alumnado (${cfg.students.length}):</strong><div class="mt-1">${fb_adminRenderChips(cfg.students.map(s => s.fullName || s), 'Sin alumnos')}</div></div>`;
+        }
+    }
+    const sc = data.scores || (kind === 'scores' ? data : null);
+    if (sc && sc.students && sc.students.length) {
+        const criteria = sc.criteria || cfg.globalCriteria || activity.data?.config?.globalCriteria || [];
+        const scores = sc.scores || [];
+        html += '<div class="mt-3"><h6 class="fw-bold" style="color:#0b4b6b;"><i class="bi bi-clipboard-check me-1"></i>Calificaciones</h6>';
+        const headers = ['Alumno'].concat(criteria.map(c => c + '.')).concat(['Calificación']);
+        const rows = sc.students.map((name, sIdx) => {
+            const row = [escapeHtml(name)];
+            criteria.forEach((c, cIdx) => {
+                const val = scores[sIdx] && scores[sIdx][cIdx] !== undefined ? scores[sIdx][cIdx] : null;
+                row.push(val !== null && val !== '' ? `<strong style="background:${fb_adminGradeColor(val)}; padding:2px 6px; border-radius:6px;">${fb_adminFormatNum(val)}</strong>` : '<span class="text-muted">—</span>');
+            });
+            const validVals = (scores[sIdx] || []).map(v => parseFloat(v)).filter(v => !isNaN(v));
+            const avg = validVals.length ? (validVals.reduce((a, b) => a + b, 0) / validVals.length) : 0;
+            row.push(`<strong style="background:${fb_adminGradeColor(avg)}; padding:3px 8px; border-radius:6px; font-size:1rem;">${fb_adminFormatNum(avg)}</strong>`);
+            return row;
+        });
+        html += fb_adminRenderTable(headers, rows);
+        html += '</div>';
+    }
+    return html;
+}
+
+// === ACTIVIDAD POR INSTRUMENTOS ===
+function fb_adminRenderInstrumentos(activity, kind, data) {
+    const cfg = data.config || data;
+    // Para registros "scores" de instrumentos, los datos de instrumentos,
+    // matriz y pesos van en el objeto scores. También podemos buscar la
+    // config vinculada para obtener el nombre de la actividad y la clase.
+    const linkedCfg = (kind === 'scores') ? fb_adminGetLinkedConfig(activity) : null;
+    const linkedData = linkedCfg ? (linkedCfg.data || {}) : {};
+    const linkedConfig = linkedData.config || linkedData || {};
+    // sc se determina aquí para poder usarlo también en el resumen cuando
+    // kind === 'scores' (los instrumentos están dentro de scores).
+    const sc0 = data.scores || (kind === 'scores' ? data : null);
+    const instrumentsForSummary = cfg.instruments || (sc0 && sc0.instruments) || linkedConfig.instruments || [];
+    const matrixForSummary = (sc0 && sc0.matrix) || cfg.matrix || linkedConfig.matrix || [];
+    let html = '<h6 class="fw-bold mt-2 mb-2" style="color:#0b4b6b;"><i class="bi bi-grid-3x3-gap-fill me-1"></i>Actividad por instrumentos</h6>';
+    if (kind === 'config' || kind === 'scores') {
+        html += `<div class="row g-2 mb-3 small">
+            <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Instrumentos</span><strong>${instrumentsForSummary.length}</strong></div></div>
+            <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Alumnado</span><strong>${(sc0 && sc0.students ? sc0.students.length : (cfg.students || []).length)}</strong></div></div>
+            <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Suma pesos</span><strong>${fb_adminFormatNum(instrumentsForSummary.reduce((s, i) => s + (parseFloat(i.weight) || 0), 0))}%</strong></div></div>
+            <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Criterios vinculados</span><strong>${fb_adminCountUsedCriteria(matrixForSummary)}</strong></div></div>
+        </div>`;
+        html += `<div class="mb-2"><strong class="small text-muted">Actividad:</strong> ${escapeHtml(cfg.actividad || linkedConfig.actividad || '—')}</div>`;
+        html += `<div class="mb-2"><strong class="small text-muted">Clase:</strong> ${escapeHtml(cfg.clase || linkedConfig.clase || '—')}</div>`;
+        if (linkedCfg && kind === 'scores') {
+            html += `<div class="alert alert-info small py-1 px-3 mb-2"><i class="bi bi-info-circle"></i> Metadatos (nombre de actividad y clase) obtenidos de la configuración vinculada "<strong>${escapeHtml(linkedCfg.name || '')}</strong>".</div>`;
+        }
+        // Tabla de instrumentos
+        if (instrumentsForSummary.length) {
+            const headers = ['#', 'Instrumento', 'Descripción', 'Peso'];
+            const rows = instrumentsForSummary.map((inst, i) => [
+                i + 1,
+                escapeHtml(inst.name || `Instrumento ${i + 1}`),
+                inst.description ? `<span class="small text-muted">${escapeHtml(inst.description)}</span>` : '<span class="text-muted">—</span>',
+                `<strong>${fb_adminFormatNum(inst.weight)}%</strong>`
+            ]);
+            html += '<div class="mb-3"><strong class="small text-muted">Instrumentos:</strong>' + fb_adminRenderTable(headers, rows) + '</div>';
+        }
+        const studentsList = (sc0 && sc0.students) ? sc0.students : (cfg.students || []);
+        if (studentsList.length) {
+            html += `<div class="mb-3"><strong class="small text-muted">Alumnado (${studentsList.length}):</strong><div class="mt-1">${fb_adminRenderChips(studentsList.map(s => s.fullName || s), 'Sin alumnos')}</div></div>`;
+        }
+    }
+    const sc = sc0;
+    if (sc && sc.students && sc.students.length) {
+        const instruments = instrumentsForSummary;
+        const matrix = (sc.matrix || cfg.matrix || linkedConfig.matrix || []);
+        const evalScores = sc.evalScores || [];
+        // Determinar criterios usados (a partir de la matrix)
+        const usedCritIndices = [];
+        if (Array.isArray(matrix) && matrix.length) {
+            const nCrit = matrix[0] ? matrix[0].length : 0;
+            for (let j = 0; j < nCrit; j++) {
+                if (matrix.some(r => r && r[j])) usedCritIndices.push(j);
+            }
+        }
+        // No podemos resolver los códigos de criterio aquí sin instrumentCriteria, así que los numeramos
+        const critLabels = usedCritIndices.map((idx, i) => `C${i + 1}`);
+        html += '<div class="mt-3"><h6 class="fw-bold" style="color:#0b4b6b;"><i class="bi bi-clipboard-check me-1"></i>Calificaciones</h6>';
+        const headers = ['Alumno'].concat(instruments.map((inst, i) => inst.name || `I${i + 1}`)).concat(critLabels).concat(['Calificación']);
+        const rows = sc.students.map((name, sIdx) => {
+            const row = [escapeHtml(name)];
+            // Notas por instrumento
+            instruments.forEach((_, i) => {
+                const val = evalScores[sIdx] && evalScores[sIdx][i] !== undefined ? evalScores[sIdx][i] : null;
+                row.push(val !== null && val !== '' ? `<strong style="background:${fb_adminGradeColor(val)}; padding:2px 6px; border-radius:6px;">${fb_adminFormatNum(val)}</strong>` : '<span class="text-muted">—</span>');
+            });
+            // Notas por criterio (computadas a partir de la matrix y pesos)
+            const weights = instruments.map(inst => parseFloat(inst.weight) || 0);
+            usedCritIndices.forEach(cIdx => {
+                let sN = 0, sW = 0;
+                instruments.forEach((_, iIdx) => {
+                    if (matrix[iIdx] && matrix[iIdx][cIdx]) {
+                        const sc2 = parseFloat(evalScores[sIdx] && evalScores[sIdx][iIdx]) || 0;
+                        const w = parseFloat(weights[iIdx]) || 0;
+                        sN += sc2 * w;
+                        sW += w;
+                    }
+                });
+                const nota = sW > 0 ? Math.round((sN / sW) * 100) / 100 : 0;
+                row.push(`<strong style="background:${fb_adminGradeColor(nota)}; padding:2px 6px; border-radius:6px;">${fb_adminFormatNum(nota)}</strong>`);
+            });
+            // Calificación media
+            const critVals = usedCritIndices.map(cIdx => {
+                let sN = 0, sW = 0;
+                instruments.forEach((_, iIdx) => {
+                    if (matrix[iIdx] && matrix[iIdx][cIdx]) {
+                        const sc2 = parseFloat(evalScores[sIdx] && evalScores[sIdx][iIdx]) || 0;
+                        const w = parseFloat(weights[iIdx]) || 0;
+                        sN += sc2 * w;
+                        sW += w;
+                    }
+                });
+                return sW > 0 ? sN / sW : 0;
+            });
+            const avg = critVals.length ? (critVals.reduce((a, b) => a + b, 0) / critVals.length) : 0;
+            row.push(`<strong style="background:${fb_adminGradeColor(avg)}; padding:3px 8px; border-radius:6px; font-size:1rem;">${fb_adminFormatNum(avg)}</strong>`);
+            return row;
+        });
+        html += fb_adminRenderTable(headers, rows);
+        html += '</div>';
+    }
+    return html;
+}
+
+// Cuenta cuántos criterios están usados (al menos un instrumento los vincula)
+function fb_adminCountUsedCriteria(matrix) {
+    if (!Array.isArray(matrix) || !matrix.length) return 0;
+    const nCrit = matrix[0] ? matrix[0].length : 0;
+    let count = 0;
+    for (let j = 0; j < nCrit; j++) {
+        if (matrix.some(r => r && r[j])) count++;
+    }
+    return count;
+}
+
+// === RÚBRICAS ===
+function fb_adminRenderRubricas(activity, kind, data) {
+    const cfg = data.config || data;
+    // Para registros "scores" de rúbricas, los aspectos están dentro del
+    // objeto scores; los valores y teacherWeight se obtienen de la config
+    // vinculada.
+    const linkedCfg = (kind === 'scores') ? fb_adminGetLinkedConfig(activity) : null;
+    const linkedData = linkedCfg ? (linkedCfg.data || {}) : {};
+    const linkedConfig = linkedData.config || linkedData || {};
+    // sc se obtiene aquí para usarlo también en el resumen cuando kind === 'scores'
+    const sc0 = data.scores || (kind === 'scores' ? data : null);
+    const aspectsForSummary = (sc0 && sc0.aspects) || cfg.aspects || linkedConfig.aspects || [];
+    const valuesForSummary = cfg.values || linkedConfig.values || ['NE'];
+    const studentsForSummary = (sc0 && sc0.students) || cfg.students || [];
+    const twForSummary = (cfg.teacherWeight !== undefined ? cfg.teacherWeight : linkedConfig.teacherWeight) || 75;
+    let html = '<h6 class="fw-bold mt-2 mb-2" style="color:#0b4b6b;"><i class="bi bi-grid-1x2-fill me-1"></i>Evaluación de rúbricas</h6>';
+    if (kind === 'config' || kind === 'scores') {
+        html += `<div class="row g-2 mb-3 small">
+            <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Aspectos</span><strong>${aspectsForSummary.length}</strong></div></div>
+            <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Niveles</span><strong>${valuesForSummary.length}</strong></div></div>
+            <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Alumnado</span><strong>${studentsForSummary.length}</strong></div></div>
+            <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Ponderación</span><strong>Profesor ${twForSummary}% · Coeval. ${100 - twForSummary}%</strong></div></div>
+        </div>`;
+        html += `<div class="mb-2"><strong class="small text-muted">Evaluación:</strong> ${escapeHtml(cfg.evalName || linkedConfig.evalName || '—')}</div>`;
+        html += `<div class="mb-2"><strong class="small text-muted">Grupo / Clase:</strong> ${escapeHtml(cfg.groupName || linkedConfig.groupName || '—')}</div>`;
+        if (linkedCfg && kind === 'scores') {
+            html += `<div class="alert alert-info small py-1 px-3 mb-2"><i class="bi bi-info-circle"></i> Metadatos (evaluación, grupo, niveles de logro y ponderación) obtenidos de la configuración vinculada "<strong>${escapeHtml(linkedCfg.name || '')}</strong>".</div>`;
+        }
+        html += `<div class="mb-2"><strong class="small text-muted">Aspectos a evaluar:</strong><div class="mt-1">${fb_adminRenderChips(aspectsForSummary, 'Sin aspectos')}</div></div>`;
+        html += `<div class="mb-3"><strong class="small text-muted">Niveles de logro:</strong><div class="mt-1">${fb_adminRenderChips(valuesForSummary, 'Sin niveles')}</div></div>`;
+        if (cfg.globalCriteria && cfg.globalCriteria.length || linkedConfig.globalCriteria && linkedConfig.globalCriteria.length) {
+            const gc = cfg.globalCriteria || linkedConfig.globalCriteria;
+            html += `<div class="mb-3"><strong class="small text-muted">Criterios de la materia:</strong><div class="mt-1">${fb_adminRenderChips(gc, 'Sin criterios')}</div></div>`;
+        }
+        if (studentsForSummary.length) {
+            html += `<div class="mb-3"><strong class="small text-muted">Alumnado (${studentsForSummary.length}):</strong><div class="mt-1">${fb_adminRenderChips(studentsForSummary.map(s => s.fullName || s), 'Sin alumnos')}</div></div>`;
+        }
+    }
+    const sc = sc0;
+    if (sc && sc.students && sc.students.length) {
+        const aspects = aspectsForSummary;
+        const values = valuesForSummary;
+        const teacherWeight = twForSummary;
+        const globalCriteria = cfg.globalCriteria || linkedConfig.globalCriteria || [];
+        const teacher = sc.teacher || {};
+        const coevaluation = sc.coevaluation || {};
+        // Función para escalar un valor a 0-10
+        const scaleScore = (score) => {
+            if (score === 'NE') return null;
+            const validValues = values.filter(v => v !== 'NE');
+            if (validValues.length === 0) return 0;
+            const allNumeric = validValues.every(v => !isNaN(parseFloat(v)));
+            if (allNumeric) {
+                const nums = validValues.map(v => parseFloat(v));
+                const minV = Math.min(...nums);
+                const maxV = Math.max(...nums);
+                const s = parseFloat(score);
+                if (isNaN(s)) return 0;
+                if (maxV === minV) return 10;
+                return ((s - minV) / (maxV - minV)) * 10;
+            }
+            const idx = validValues.indexOf(score);
+            if (idx === -1) return 0;
+            if (validValues.length === 1) return 10;
+            return (idx / (validValues.length - 1)) * 10;
+        };
+        // Tabla del profesor
+        html += '<div class="mt-3"><h6 class="fw-bold" style="color:#0b4b6b;"><i class="bi bi-person-fill me-1"></i>Evaluación del profesor</h6>';
+        const tHeaders = ['Alumno'].concat(aspects);
+        const tRows = sc.students.map(name => {
+            const row = [escapeHtml(name)];
+            aspects.forEach(a => {
+                const v = teacher[name] && teacher[name][a] ? teacher[name][a] : 'NE';
+                row.push(`<span class="badge ${v === 'NE' ? 'bg-secondary' : 'bg-primary'}" style="font-size:0.72rem;">${escapeHtml(v)}</span>`);
+            });
+            return row;
+        });
+        html += fb_adminRenderTable(tHeaders, tRows);
+        html += '</div>';
+        // Resumen coevaluación (nota promedio recibida de los compañeros)
+        html += '<div class="mt-3"><h6 class="fw-bold" style="color:#0b4b6b;"><i class="bi bi-people-fill me-1"></i>Coevaluación (nota promedio recibida)</h6>';
+        const cHeaders = ['Alumno', 'Nº evaluadores', 'Nota coevaluación'];
+        const cRows = sc.students.map(name => {
+            let sumScores = 0, cnt = 0;
+            sc.students.forEach(evaluator => {
+                if (evaluator === name) return;
+                const ev = coevaluation[evaluator] && coevaluation[evaluator][name];
+                if (!ev) return;
+                let evSum = 0, evCnt = 0;
+                aspects.forEach(a => {
+                    const v = ev[a];
+                    if (v && v !== 'NE') {
+                        const sc2 = scaleScore(v);
+                        if (sc2 !== null) { evSum += sc2; evCnt++; }
+                    }
+                });
+                if (evCnt > 0) { sumScores += evSum / evCnt; cnt++; }
+            });
+            const coevalScore = cnt > 0 ? (sumScores / cnt) : 0;
+            return [
+                escapeHtml(name),
+                cnt,
+                cnt > 0 ? `<strong style="background:${fb_adminGradeColor(coevalScore)}; padding:2px 6px; border-radius:6px;">${fb_adminFormatNum(coevalScore)}</strong>` : '<span class="text-muted">—</span>'
+            ];
+        });
+        html += fb_adminRenderTable(cHeaders, cRows);
+        html += '</div>';
+        // Resultados finales (computados al vuelo)
+        html += '<div class="mt-3"><h6 class="fw-bold" style="color:#0b4b6b;"><i class="bi bi-trophy-fill me-1"></i>Resultados finales</h6>';
+        const rHeaders = ['Alumno', 'Nota Profesor', 'Nota Coevaluación', 'Nota Final'].concat(globalCriteria.map(c => c + '.'));
+        const rRows = sc.students.map(name => {
+            let tSum = 0, tCnt = 0;
+            aspects.forEach(a => {
+                const v = teacher[name] && teacher[name][a] ? teacher[name][a] : 'NE';
+                if (v && v !== 'NE') {
+                    const sc2 = scaleScore(v);
+                    if (sc2 !== null) { tSum += sc2; tCnt++; }
+                }
+            });
+            const teacherScore = tCnt > 0 ? tSum / tCnt : 0;
+            let cSum = 0, cCnt = 0;
+            sc.students.forEach(evaluator => {
+                if (evaluator === name) return;
+                const ev = coevaluation[evaluator] && coevaluation[evaluator][name];
+                if (!ev) return;
+                let evSum = 0, evCnt = 0;
+                aspects.forEach(a => {
+                    const v = ev[a];
+                    if (v && v !== 'NE') {
+                        const sc2 = scaleScore(v);
+                        if (sc2 !== null) { evSum += sc2; evCnt++; }
+                    }
+                });
+                if (evCnt > 0) { cSum += evSum / evCnt; cCnt++; }
+            });
+            const coevalScore = cCnt > 0 ? cSum / cCnt : 0;
+            const finalScore = (teacherScore * teacherWeight / 100) + (coevalScore * (100 - teacherWeight) / 100);
+            const row = [
+                `<strong>${escapeHtml(name)}</strong>`,
+                `<strong style="background:${fb_adminGradeColor(teacherScore)}; padding:2px 6px; border-radius:6px;">${fb_adminFormatNum(teacherScore)}</strong>`,
+                `<strong style="background:${fb_adminGradeColor(coevalScore)}; padding:2px 6px; border-radius:6px;">${fb_adminFormatNum(coevalScore)}</strong>`,
+                `<strong style="background:${fb_adminGradeColor(finalScore)}; padding:3px 8px; border-radius:6px; font-size:1rem;">${fb_adminFormatNum(finalScore)}</strong>`
+            ];
+            globalCriteria.forEach(c => row.push(`<strong style="background:${fb_adminGradeColor(finalScore)}; padding:2px 6px; border-radius:6px;">${fb_adminFormatNum(finalScore)}</strong>`));
+            return row;
+        });
+        html += fb_adminRenderTable(rHeaders, rRows);
+        html += '</div>';
+    }
+    return html;
+}
+
+// === PONDERACIÓN ===
+function fb_adminRenderPonderacion(activity, kind, data) {
+    const cfg = data.config || data;
+    let html = '<h6 class="fw-bold mt-2 mb-2" style="color:#0b4b6b;"><i class="bi bi-layers-half me-1"></i>Ponderación de actividades</h6>';
+    html += `<div class="row g-2 mb-3 small">
+        <div class="col-md-4"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Nº de actividades</span><strong>${cfg.numActividades || (cfg.actividades || []).length}</strong></div></div>
+        <div class="col-md-4"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Suma de pesos</span><strong>${fb_adminFormatNum((cfg.actividades || []).reduce((s, a) => s + (parseFloat(a.peso) || 0), 0))}%</strong></div></div>
+        <div class="col-md-4"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Cargadas</span><strong>${(cfg.actividades || []).filter(a => a.loaded).length}</strong></div></div>
+    </div>`;
+    html += `<div class="mb-2"><strong class="small text-muted">Nombre:</strong> ${escapeHtml(cfg.nombre || '—')}</div>`;
+    html += `<div class="mb-2"><strong class="small text-muted">Curso:</strong> ${escapeHtml(cfg.curso || '—')}</div>`;
+    if (cfg.actividades && cfg.actividades.length) {
+        const headers = ['#', 'Actividad', 'Peso', '¿Cargada?', 'Archivo'];
+        const rows = cfg.actividades.map((a, i) => [
+            i + 1,
+            escapeHtml(a.nombre || `Actividad ${i + 1}`),
+            `<strong>${fb_adminFormatNum(a.peso)}%</strong>`,
+            a.loaded ? '<span class="badge bg-success">Sí</span>' : '<span class="badge bg-secondary">No</span>',
+            a.fileName ? `<span class="small text-muted">${escapeHtml(a.fileName)}</span>` : '<span class="text-muted">—</span>'
+        ]);
+        html += '<div class="mb-3"><strong class="small text-muted">Actividades:</strong>' + fb_adminRenderTable(headers, rows) + '</div>';
+    }
+    // Si hay datos de sesión con resultados (kind === 'scores' en pond)
+    if (kind === 'scores' && data.actividades) {
+        html += '<div class="mt-3"><h6 class="fw-bold" style="color:#0b4b6b;"><i class="bi bi-clipboard-check me-1"></i>Actividades importadas</h6>';
+        const headers = ['#', 'Actividad', 'Peso', 'Resultados'];
+        const rows = data.actividades.map((a, i) => [
+            i + 1,
+            escapeHtml(a.nombre || `Actividad ${i + 1}`),
+            `<strong>${fb_adminFormatNum(a.peso)}%</strong>`,
+            a.resultados ? a.resultados.length : 0
+        ]);
+        html += fb_adminRenderTable(headers, rows);
+        html += '</div>';
+    }
+    return html;
+}
+
+// Formatea un número para mostrarlo (máximo 2 decimales, sin ceros sobrantes)
+function fb_adminFormatNum(v) {
+    const n = parseFloat(v);
+    if (isNaN(n)) return '0';
+    return parseFloat(n.toFixed(2)).toString();
 }
 
 // === ACCIONES DE ADMIN SOBRE USUARIOS ===
@@ -10041,7 +11320,7 @@ function fb_openAppLoadModal(app) {
 }
 
 // Renderiza la lista de actividades de la app actual en el modal de carga (versión enriquecida)
-let _fbAppLoadOwnerFilter = 'mine'; // 'mine' o 'all' — solo relevante para admin
+let _fbAppLoadOwnerFilter = 'mine'; // 'mine' o 'all' — solo el admin puede usar 'all'
 
 function fb_renderAppLoadList() {
     const list = document.getElementById('fbAppLoadList');
@@ -10049,12 +11328,18 @@ function fb_renderAppLoadList() {
     if (!list) return;
     list.innerHTML = '';
     const isAdmin = fbCurrentUser && fbCurrentUser.role === 'admin';
-    // Mostrar/ocultar botones de filtro de propietario (solo admin)
+    // Mostrar/ocultar botones de filtro de propietario (solo admin).
+    // Los usuarios no-admin solo ven sus propias actividades (no pueden ver
+    // las de otros usuarios). Solo el admin tiene el privilegio de ver todas.
     const ownerFilterEl = document.getElementById('fbAppLoadOwnerFilter');
     if (ownerFilterEl) ownerFilterEl.style.display = isAdmin ? 'inline-flex' : 'none';
+    // Si un usuario no-admin tenía el filtro en 'all' (por error o cambio de rol),
+    // forzarlo a 'mine' para no mostrarle actividades de otros.
+    if (!isAdmin) _fbAppLoadOwnerFilter = 'mine';
     // Filtrar por app y kind (config o scores)
     const kind = _fbAppLoadModalKind || 'config';
-    // Determinar qué actividades mostrar según filtro de propietario
+    // Determinar qué actividades mostrar según filtro de propietario.
+    // Solo el admin puede ver las actividades de todos los usuarios.
     let filtered;
     if (isAdmin && _fbAppLoadOwnerFilter === 'all') {
         filtered = fbAllActivities.filter(a => a.app === _fbAppLoadModalApp && (a.kind || 'config') === kind);
@@ -10087,6 +11372,7 @@ function fb_renderAppLoadList() {
         }
     }
     if (countSpan) countSpan.textContent = filtered.length;
+    // El badge de propietario solo se muestra cuando el admin ve "Todas las actividades"
     const showOwnerBadge = isAdmin && _fbAppLoadOwnerFilter === 'all';
     if (filtered.length === 0) {
         const activeCourse = fbAllCourses.find(c => c.id === fbCurrentCourseId);
@@ -10154,12 +11440,18 @@ function fb_renderAppLoadList() {
                 </div>
             </div>
             <div class="fb-act-actions">
+                <button class="fb-act-action-btn view-btn" title="Visualizar contenido (alumnado, criterios, calificaciones, rúbricas, etc.)"><i class="bi bi-eye"></i> Ver</button>
                 <button class="fb-act-action-btn load-btn" title="Cargar en la app"><i class="bi bi-cloud-arrow-down"></i> Cargar</button>
                 <button class="fb-act-action-btn rename-btn" ${canEdit ? '' : 'disabled'} title="${canEdit ? 'Renombrar' : 'No tienes permiso'}"><i class="bi bi-pencil"></i> Renombrar</button>
                 <button class="fb-act-action-btn delete-btn" ${canEdit ? '' : 'disabled'} title="${canEdit ? 'Eliminar' : 'No tienes permiso'}"><i class="bi bi-trash3"></i> Eliminar</button>
             </div>
         `;
         // Listeners
+        card.querySelector('.view-btn').addEventListener('click', () => {
+            // Cerrar el modal de carga para que el visualizador se vea por encima
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('fbAppLoadModal')).hide();
+            setTimeout(() => fb_adminViewActivity(a), 350);
+        });
         card.querySelector('.load-btn').addEventListener('click', () => {
             if (kind === 'scores') {
                 try {
@@ -10206,11 +11498,17 @@ function fb_renderAppLoadList() {
                         </div>
                     </div>
                     <div class="fb-act-actions">
+                        <button class="fb-act-action-btn view-btn" title="Visualizar calificaciones"><i class="bi bi-eye"></i> Ver</button>
                         <button class="fb-act-action-btn load-btn" title="Cargar calificaciones"><i class="bi bi-cloud-arrow-down"></i> Cargar calif.</button>
                         <button class="fb-act-action-btn rename-btn" ${canEdit ? '' : 'disabled'}><i class="bi bi-pencil"></i></button>
                         <button class="fb-act-action-btn delete-btn" ${canEdit ? '' : 'disabled'}><i class="bi bi-trash3"></i></button>
                     </div>
                 `;
+                childCard.querySelector('.view-btn').addEventListener('click', () => {
+                    // Cerrar el modal de carga para que el visualizador se vea por encima
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('fbAppLoadModal')).hide();
+                    setTimeout(() => fb_adminViewActivity(s), 350);
+                });
                 childCard.querySelector('.load-btn').addEventListener('click', () => {
                     try {
                         fb_applyScores(_fbAppLoadModalApp, s.data);
@@ -12465,6 +13763,113 @@ window.onload = function() {
     document.getElementById('fbAdminActSearch')?.addEventListener('input', fb_renderAdminActivities);
     // Al cambiar a la pestaña de actividades del admin, renderizar la lista
     document.getElementById('fbAdminActivitiesTab')?.addEventListener('shown.bs.tab', fb_renderAdminActivities);
+    // ═══════════════════════════════════════════════════════════════════════════
+    // NUEVO: Listeners para los filtros ágiles del panel de actividades del admin
+    // Cada cambio en cualquiera de los filtros re-renderiza la lista aplicando
+    // todos los filtros a la vez (combinación AND).
+    // ═══════════════════════════════════════════════════════════════════════════
+    ['fbAdminActAppFilter','fbAdminActKindFilter','fbAdminActUserFilter','fbAdminActCourseFilter','fbAdminActSubjectFilter'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', fb_renderAdminActivities);
+    });
+    document.getElementById('fbAdminActCompleteFilter')?.addEventListener('change', fb_renderAdminActivities);
+    document.getElementById('fbAdminActClearFiltersBtn')?.addEventListener('click', function() {
+        document.getElementById('fbAdminActAppFilter').value = '';
+        document.getElementById('fbAdminActKindFilter').value = '';
+        document.getElementById('fbAdminActUserFilter').value = '';
+        document.getElementById('fbAdminActCourseFilter').value = '';
+        document.getElementById('fbAdminActSubjectFilter').value = '';
+        document.getElementById('fbAdminActCompleteFilter').checked = false;
+        document.getElementById('fbAdminActSearch').value = '';
+        fb_renderAdminActivities();
+    });
+    // ═══════════════════════════════════════════════════════════════════════════
+    // NUEVO: Botón "Ver criterios" en el panel de actividades del admin.
+    // Abre el visualizador mostrando todos los criterios de evaluación de la
+    // materia seleccionada en el filtro, incluso si la materia no está guardada
+    // explícitamente en la nube (se reconstruyen a partir de las actividades).
+    // ═══════════════════════════════════════════════════════════════════════════
+    document.getElementById('fbAdminActViewCriteriaBtn')?.addEventListener('click', function() {
+        const subjectId = document.getElementById('fbAdminActSubjectFilter')?.value || '';
+        if (!subjectId) {
+            // Si no hay materia seleccionada, abrir el modal de materias para que el admin elija
+            if (fbCurrentUser) {
+                fb_openSubjectsModal();
+            } else {
+                alert('Debes iniciar sesión para ver los criterios de las materias.');
+            }
+            return;
+        }
+        fb_viewSubjectCriteria(subjectId);
+    });
+    // ═══════════════════════════════════════════════════════════════════════════
+    // NUEVO: Listeners del visualizador de actividad (fbAdminViewerModal)
+    // - Botón "Ver JSON": alterna la visualización del JSON crudo de la actividad
+    //   (útil para inspección detallada o depuración)
+    // - Botón "Exportar JSON": descarga el JSON completo como archivo
+    // ═══════════════════════════════════════════════════════════════════════════
+    document.getElementById('fbAdminViewerRawBtn')?.addEventListener('click', function() {
+        let rawPre = document.getElementById('fbAdminViewerRawPre');
+        if (!rawPre) {
+            // Crear el <pre> si no existe todavía
+            rawPre = document.createElement('pre');
+            rawPre.id = 'fbAdminViewerRawPre';
+            rawPre.className = 'bg-dark text-light p-3 rounded mt-3';
+            rawPre.style.cssText = 'font-size:0.7rem; max-height:400px; overflow:auto; white-space:pre-wrap; word-break:break-all;';
+            const body = document.getElementById('fbAdminViewerBody');
+            if (body) body.appendChild(rawPre);
+        }
+        if (rawPre.style.display === 'none' || !rawPre.style.display) {
+            // Construir una representación JSON limpia de la actividad (sin metadatos internos)
+            const act = _fbAdminViewerCurrentActivity;
+            if (act) {
+                const exportData = {
+                    name: act.name,
+                    app: act.app,
+                    appLabel: act.appLabel,
+                    kind: act.kind || 'config',
+                    className: act.className,
+                    subjectName: act.subjectName,
+                    subjectCourse: act.subjectCourse,
+                    subjectId: act.subjectId,
+                    createdByName: act.createdByName,
+                    createdAt: act.createdAt,
+                    updatedAt: act.updatedAt,
+                    courseId: fb_resolveRecordCourseId(act),
+                    data: act.data
+                };
+                rawPre.textContent = JSON.stringify(exportData, null, 2);
+            }
+            rawPre.style.display = 'block';
+            this.innerHTML = '<i class="bi bi-code-slash"></i> Ocultar JSON';
+        } else {
+            rawPre.style.display = 'none';
+            this.innerHTML = '<i class="bi bi-code-slash"></i> Ver JSON';
+        }
+    });
+    document.getElementById('fbAdminViewerExportBtn')?.addEventListener('click', function() {
+        const act = _fbAdminViewerCurrentActivity;
+        if (!act) return;
+        const exportData = {
+            name: act.name,
+            app: act.app,
+            appLabel: act.appLabel,
+            kind: act.kind || 'config',
+            className: act.className,
+            subjectName: act.subjectName,
+            subjectCourse: act.subjectCourse,
+            subjectId: act.subjectId,
+            createdByName: act.createdByName,
+            createdAt: act.createdAt,
+            updatedAt: act.updatedAt,
+            courseId: fb_resolveRecordCourseId(act),
+            data: act.data
+        };
+        // Nombre del archivo: tipo de app + nombre de la actividad + .json
+        const safeName = (act.name || 'actividad').replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ._-]/g, '_').slice(0, 60);
+        const kindTag = (act.kind || 'config') === 'scores' ? 'calificaciones' : 'config';
+        const fileName = `${act.app || 'actividad'}_${kindTag}_${safeName}.json`;
+        downloadJSON(exportData, fileName);
+    });
     document.getElementById('fbRenameConfirmBtn')?.addEventListener('click', fb_confirmRename);
     // Listeners para los botones de filtro del modal de carga (fbAppLoadModal)
     document.getElementById('fbAppLoadFilterMine')?.addEventListener('click', function() {
