@@ -7684,11 +7684,13 @@ function fb_subscribeActivities() {
     const ref = fbDb.ref(FB_ACTIVITIES_PATH).orderByChild('updatedAt');
     fbActivitiesUnsub = ref.on('value', snap => {
         const data = snap.val() || {};
-        // Convertir a array con id y FILTRAR por appId para garantizar aislamiento
-        // (salvaguarda: ignora cualquier registro heredado sin appId o con appId distinto)
+        // Convertir a array con id y FILTRAR por appId para garantizar aislamiento.
+        // Se incluyen los registros heredados sin appId (compatibilidad hacia atrás
+        // dentro del namespace propio) para que el admin pueda ver TODAS las
+        // actividades y materias, incluidas las más antiguas.
         fbAllActivities = Object.entries(data)
             .map(([id, val]) => ({ id, ...val }))
-            .filter(a => a.appId === FB_APP_ID);
+            .filter(a => !a.appId || a.appId === FB_APP_ID);
         // Ordenar por updatedAt desc (más reciente primero)
         fbAllActivities.sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
         // Si el modal de carga está abierto, refrescar la lista (los datos han cambiado)
