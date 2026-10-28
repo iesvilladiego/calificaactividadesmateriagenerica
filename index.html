@@ -2831,38 +2831,13 @@
                     <button class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Formulario de login/registro (visible cuando NO hay sesión) -->
+                    <!-- Formulario de login (visible cuando NO hay sesión) -->
                     <div id="fbAuthForm">
-                        <ul class="nav nav-pills nav-justified mb-3" id="fbAuthTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="fbAuthLoginTab" data-bs-toggle="pill" data-bs-target="#fbAuthLoginPane" type="button">Iniciar sesión</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="fbAuthRegisterTab" data-bs-toggle="pill" data-bs-target="#fbAuthRegisterPane" type="button">Registrarse</button>
-                            </li>
-                        </ul>
-                        <div class="tab-content">
-                            <!-- Login -->
-                            <div class="tab-pane fade show active" id="fbAuthLoginPane" role="tabpanel">
-                                <div class="fb-auth-form">
-                                    <div class="alert alert-warning small py-2 px-3 mb-2"><i class="bi bi-shield-fill-check"></i> <b>Debes iniciar sesión con tu usuario IdEA</b> (el mismo que usas en las aplicaciones de la Junta de Andalucía, p. ej. <b>jandluz123</b>).<br><i class="bi bi-key"></i> La contraseña inicial coincide con tu usuario IdEA; podrás cambiarla después de iniciar sesión desde tu panel de cuenta.</div>
-                                    <input type="text" class="form-control" id="fbLoginEmail" placeholder="Usuario IdEA (p. ej. jandluz123)" autocomplete="username">
-                                    <input type="password" class="form-control" id="fbLoginPassword" placeholder="Contraseña" autocomplete="current-password">
-                                    <button class="btn btn-warning btn-lg w-100" id="fbLoginBtn"><i class="bi bi-box-arrow-in-right"></i> Entrar</button>
-                                </div>
-                            </div>
-                            <!-- Registro -->
-                            <div class="tab-pane fade" id="fbAuthRegisterPane" role="tabpanel">
-                                <div class="fb-auth-form">
-                                    <input type="text" class="form-control" id="fbRegDisplayName" placeholder="Nombre para mostrar (ej: Juan Pérez)" autocomplete="name">
-                                    <input type="text" class="form-control" id="fbRegEmail" placeholder="Nombre de usuario (3-30 chars: letras, números, . _ -)" autocomplete="username">
-                                    <input type="password" class="form-control" id="fbRegPassword" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="new-password">
-                                    <input type="password" class="form-control" id="fbRegPasswordConfirm" placeholder="Repite la contraseña" autocomplete="new-password">
-                                    <div id="fbRegPasswordMatch" class="small mt-1" style="display:none;"></div>
-                                    <div class="alert alert-info small py-1 px-2 mb-2"><i class="bi bi-info-circle"></i> Los nuevos usuarios se registran como <b>Profesor</b> y pueden guardar y gestionar sus propias actividades en la nube. <b>El primer usuario en registrarse</b> se convierte automáticamente en <b>Administrador</b> (ve y gestiona las actividades de todos). Un administrador podrá cambiar tu rol después.</div>
-                                    <button class="btn btn-success btn-lg w-100" id="fbRegisterBtn" disabled><i class="bi bi-person-plus"></i> Crear cuenta</button>
-                                </div>
-                            </div>
+                        <div class="fb-auth-form">
+                            <div class="alert alert-warning small py-2 px-3 mb-2"><i class="bi bi-shield-fill-check"></i> <b>Debes iniciar sesión con tu usuario IdEA</b> (el mismo que usas en las aplicaciones de la Junta de Andalucía, p. ej. <b>jandluz123</b>).<br><i class="bi bi-key"></i> La contraseña inicial coincide con tu usuario IdEA; podrás cambiarla después de iniciar sesión desde tu panel de cuenta.</div>
+                            <input type="text" class="form-control" id="fbLoginEmail" placeholder="Usuario IdEA (p. ej. jandluz123)" autocomplete="username">
+                            <input type="password" class="form-control" id="fbLoginPassword" placeholder="Contraseña" autocomplete="current-password">
+                            <button class="btn btn-warning btn-lg w-100" id="fbLoginBtn"><i class="bi bi-box-arrow-in-right"></i> Entrar</button>
                         </div>
                         <div id="fbAuthMessage" class="mt-3 small"></div>
                     </div>
@@ -7458,17 +7433,6 @@ function fb_onAuthStateChanged(user) {
                 }
                 // === AUTOSAVE: activar sincronización con Firebase (entre dispositivos) ===
                 try { autosave_setupFirebaseSync(); } catch(e) { console.warn('[Autosave] No se pudo activar sync Firebase:', e); }
-                // === LIMPIEZA DE DUPLICADOS: eliminar configs duplicadas tras login ===
-                // Se ejecuta con un pequeño retardo para dar tiempo a que fbAllActivities
-                // se llene con los datos de la suscripción.
-                setTimeout(() => {
-                    try {
-                        const deleted = fb_cleanupDuplicateConfigs();
-                        if (deleted > 0) {
-                            console.info('[Cleanup] Se eliminaron ' + deleted + ' configuracion(es) duplicada(s) de la nube.');
-                        }
-                    } catch(e) { console.warn('[Cleanup] Error al limpiar duplicados:', e); }
-                }, 3000);
             });
         } else {
             // Logout: cancelar listener del perfil y limpiar estado
@@ -7527,48 +7491,6 @@ function fb_login(username, password) {
             else if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') msg = 'Usuario o contraseña incorrectos.';
             else if (err.code === 'auth/too-many-requests') msg = 'Demasiados intentos fallidos. Inténtalo más tarde.';
             else if (err.code === 'auth/invalid-email') msg = 'Nombre de usuario no válido.';
-            fb_showAuthMessage(msg, 'danger');
-        });
-}
-
-// Registro de nuevo usuario
-function fb_register(displayName, username, password, passwordConfirm) {
-    if (!displayName || !username || !password || !passwordConfirm) { fb_showAuthMessage('Completa todos los campos.', 'danger'); return; }
-    if (!fb_isValidUsername(username)) {
-        fb_showAuthMessage('El nombre de usuario debe tener entre 3 y 30 caracteres alfanuméricos (letras, números, . _ -).', 'danger');
-        return;
-    }
-    if (password.length < 6) { fb_showAuthMessage('La contraseña debe tener al menos 6 caracteres.', 'danger'); return; }
-    if (password !== passwordConfirm) { fb_showAuthMessage('Las contraseñas no coinciden.', 'danger'); return; }
-    const email = fb_usernameToEmail(username);
-    fbAuth.createUserWithEmailAndPassword(email, password)
-        .then(cred => {
-            // Crear registro en DB con rol 'user' (no admin)
-            fb_ensureUserRecord(cred.user, displayName);
-            // Actualizar displayName en Auth
-            return cred.user.updateProfile({ displayName: displayName });
-        })
-        .then(() => {
-            fb_showAuthMessage('Cuenta creada correctamente. Ya puedes iniciar sesión.', 'success');
-            // Limpiar formulario y volver a la pestaña de login
-            document.getElementById('fbRegDisplayName').value = '';
-            document.getElementById('fbRegEmail').value = '';
-            document.getElementById('fbRegPassword').value = '';
-            document.getElementById('fbRegPasswordConfirm').value = '';
-            document.getElementById('fbRegPasswordMatch').style.display = 'none';
-            document.getElementById('fbRegisterBtn').disabled = true;
-            // Cambiar a la pestaña de login
-            const loginTab = document.getElementById('fbAuthLoginTab');
-            if (loginTab) new bootstrap.Tab(loginTab).show();
-            // El usuario queda autenticado automáticamente
-            const modalEl = document.getElementById('fbAuthModal');
-            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
-        })
-        .catch(err => {
-            let msg = 'Error al crear la cuenta.';
-            if (err.code === 'auth/email-already-in-use') msg = 'Ya existe una cuenta con ese nombre de usuario. Elige otro.';
-            else if (err.code === 'auth/invalid-email') msg = 'Nombre de usuario no válido.';
-            else if (err.code === 'auth/weak-password') msg = 'Contraseña demasiado débil (mínimo 6 caracteres).';
             fb_showAuthMessage(msg, 'danger');
         });
 }
@@ -7728,17 +7650,14 @@ function fb_updateAccountUI() {
 // === UI: modal de cuenta (fbAuthModal alterna entre formulario de acceso y panel de cuenta) ===
 function fb_updateCloudUI() {
     const authForm = document.getElementById('fbAuthForm');
-    const authTabs = document.getElementById('fbAuthTabs');
     const accountPanel = document.getElementById('fbAccountPanel');
     if (fbCurrentUser) {
         // Con sesión: ocultar el formulario de acceso y mostrar el panel de cuenta
         if (authForm) authForm.style.display = 'none';
-        if (authTabs) authTabs.style.display = 'none';
         if (accountPanel) accountPanel.style.display = 'block';
     } else {
         // Sin sesión: mostrar el formulario de acceso y ocultar el panel de cuenta
         if (authForm) authForm.style.display = '';
-        if (authTabs) authTabs.style.display = '';
         if (accountPanel) accountPanel.style.display = 'none';
         return;
     }
@@ -12472,47 +12391,6 @@ function _fb_optimisticUpdateCache(id, record) {
     } catch(e) { /* noop */ }
 }
 
-// === LIMPIEZA DE DUPLICADOS (para el admin) ===
-// Elimina registros config duplicados del mismo usuario, app, materia y curso,
-// conservando solo el más reciente (mayor updatedAt). Se llama automáticamente
-// al iniciar sesión y también está disponible para el admin desde el panel.
-function fb_cleanupDuplicateConfigs() {
-    if (!fbCurrentUser || !fbDb) return 0;
-    // Agrupar por (app + createdBy + name + className + subjectId + courseId)
-    const groups = {};
-    fbAllActivities.forEach(a => {
-        if ((a.kind || 'config') !== 'config') return;
-        if (!a.createdBy) return;
-        const courseId = fb_resolveRecordCourseId(a) || '';
-        const key = [
-            a.app || '',
-            a.createdBy,
-            (a.name || '').trim().toLowerCase(),
-            (a.className || '').trim().toLowerCase(),
-            a.subjectId || '',
-            courseId
-        ].join('||');
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(a);
-    });
-    let deletedCount = 0;
-    Object.values(groups).forEach(group => {
-        if (group.length <= 1) return;
-        // Ordenar por updatedAt desc (más reciente primero)
-        group.sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
-        // Conservar el primero (más reciente), eliminar el resto
-        for (let i = 1; i < group.length; i++) {
-            const dup = group[i];
-            if (dup.id) {
-                fbDb.ref(`${FB_ACTIVITIES_PATH}/${dup.id}`).remove()
-                    .catch(err => console.warn('[Cleanup] Error al eliminar duplicado:', err));
-                deletedCount++;
-            }
-        }
-    });
-    return deletedCount;
-}
-
 // Guarda las calificaciones de la app actual en la nube (upsert silencioso).
 // Solo hay una copia de calificaciones por actividad: si ya existe, se actualiza.
 function autosave_saveScoresToCloud(app, configRef, configName) {
@@ -13772,42 +13650,6 @@ window.onload = function() {
         const p = document.getElementById('fbLoginPassword').value;
         fb_login(u, p);
     });
-    document.getElementById('fbRegisterBtn')?.addEventListener('click', () => {
-        const dn = document.getElementById('fbRegDisplayName').value.trim();
-        const u = document.getElementById('fbRegEmail').value.trim();
-        const p = document.getElementById('fbRegPassword').value;
-        const pc = document.getElementById('fbRegPasswordConfirm').value;
-        fb_register(dn, u, p, pc);
-    });
-    // Validación en tiempo real de la confirmación de contraseña
-    function _checkPasswordMatch() {
-        const p = document.getElementById('fbRegPassword').value;
-        const pc = document.getElementById('fbRegPasswordConfirm').value;
-        const matchEl = document.getElementById('fbRegPasswordMatch');
-        const btn = document.getElementById('fbRegisterBtn');
-        if (!pc) {
-            matchEl.style.display = 'none';
-            btn.disabled = true;
-            return;
-        }
-        matchEl.style.display = 'block';
-        if (p === pc) {
-            matchEl.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> <span class="text-success">Las contraseñas coinciden</span>';
-            btn.disabled = p.length < 6;
-        } else {
-            matchEl.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i> <span class="text-danger">Las contraseñas NO coinciden</span>';
-            btn.disabled = true;
-        }
-        // También deshabilitar si la contraseña es demasiado corta
-        if (p.length > 0 && p.length < 6) {
-            matchEl.innerHTML = '<i class="bi bi-exclamation-triangle-fill text-warning"></i> <span class="text-warning">La contraseña debe tener al menos 6 caracteres</span>';
-            btn.disabled = true;
-        }
-    }
-    document.getElementById('fbRegPassword')?.addEventListener('input', _checkPasswordMatch);
-    document.getElementById('fbRegPasswordConfirm')?.addEventListener('input', _checkPasswordMatch);
-    // Permitir enviar el registro con Enter desde el campo de confirmación
-    document.getElementById('fbRegPasswordConfirm')?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); if (!document.getElementById('fbRegisterBtn').disabled) document.getElementById('fbRegisterBtn').click(); } });
     document.getElementById('fbAccountLogoutBtn')?.addEventListener('click', fb_logout);
     document.getElementById('fbAccountDeleteBtn')?.addEventListener('click', fb_deleteOwnAccount);
     // === LISTENERS: CURSOS ACADÉMICOS Y GRUPOS ===
