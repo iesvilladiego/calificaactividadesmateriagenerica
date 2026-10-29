@@ -7,7 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>EVALUACIÓN CRITERIAL · MULTIMATERIA · V2.3</title>
+    <title>EVALUACIÓN CRITERIAL · MULTIMATERIA</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <meta name="theme-color" content="#eef2f7">
@@ -71,7 +71,7 @@
         }
 
         .container-custom {
-            max-width: 1400px;
+            max-width: 1700px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -2039,8 +2039,6 @@
             <i class="bi bi-diagram-3 me-2" style="color: #0d6efd;"></i>EVALUACIÓN CRITERIAL · <span id="subjectNameDisplay">[sin materia]</span>
         </h1>
         <div class="d-flex align-items-center gap-2 flex-wrap">
-            <!-- Chip de versión de la app (se rellena desde el service worker) -->
-            <span id="appVersionChip" class="version-chip" title="Versión de la app (obtenida del service worker)"><span id="appVersionSwDot" class="sw-dot" aria-hidden="true"></span><i class="bi bi-git" aria-hidden="true"></i><span id="appVersionChipText">v2.3</span></span>
             <span id="autosaveIndicator" class="autosave-indicator idle" title="Estado del guardado automático y sincronización entre pestañas y dispositivos">
                 <i class="bi bi-cloud-check"></i> <span class="autosave-text">Iniciando…</span>
             </span>
@@ -2057,8 +2055,8 @@
         <button type="button" class="btn btn-outline-secondary" id="btnHome"><i class="fas fa-home"></i> Inicio</button>
         <button type="button" class="btn btn-outline-primary" id="btnAppExam"><i class="bi bi-pencil-square"></i> Examen Preguntas/Criterios</button>
         <button type="button" class="btn btn-outline-success" id="btnAppTest"><i class="fas fa-calculator"></i> Examen Tipo Test</button>
-        <button type="button" class="btn btn-outline-warning" id="btnAppGeneric"><i class="bi bi-check2-circle"></i> Actividad por Criterios</button>
-        <button type="button" class="btn btn-outline-secondary" id="btnAppInstrumentos"><i class="bi bi-grid-3x3-gap-fill"></i> Actividad por Instrumentos</button>
+        <button type="button" class="btn btn-outline-warning" id="btnAppGeneric"><i class="bi bi-check2-circle"></i> Actividad x Criterios</button>
+        <button type="button" class="btn btn-outline-secondary" id="btnAppInstrumentos"><i class="bi bi-grid-3x3-gap-fill"></i> Actividad x Instrumentos</button>
         <button type="button" class="btn btn-outline-info" id="btnAppPonderacion"><i class="bi bi-layers-half"></i> Ponderación</button>
         <button type="button" class="btn btn-outline-danger" id="btnAppRubricas"><i class="bi bi-grid-1x2-fill"></i> Rúbricas</button>
         <a class="btn btn-outline-danger ms-auto" id="btnTutorial" href="Manual_Profesor.pdf" download="Manual_Profesor.pdf" title="Descargar el manual del perfil Profesor (PDF A4)"><i class="bi bi-person-workspace"></i> Manual</a>
@@ -2110,8 +2108,8 @@
             <div class="col-md-6"><div class="card home-card p-4 text-center h-100 d-flex flex-column" id="cardTest"><i class="fas fa-calculator" style="font-size: 3rem; color: #198754;"></i><h3 class="mt-3 fw-bold">Examen tipo test</h3><p class="text-muted flex-grow-1">Aciertos, fallos, NS/NC. Con o sin penalización. Misma nota para todos los criterios.</p><button class="btn btn-success mt-auto"><i class="bi bi-box-arrow-in-right"></i> Usar</button></div></div>
         </div>
         <div class="row g-4 justify-content-center mt-2">
-            <div class="col-md-6"><div class="card home-card p-4 text-center h-100 d-flex flex-column" id="cardGeneric"><i class="bi bi-check2-circle" style="font-size: 3rem; color: #fd7e14;"></i><h3 class="mt-3 fw-bold">Actividad por criterios</h3><p class="text-muted flex-grow-1">Califica directamente cada criterio con nota 0-10.</p><button class="btn btn-warning mt-auto"><i class="bi bi-box-arrow-in-right"></i> Usar</button></div></div>
-            <div class="col-md-6"><div class="card home-card p-4 text-center h-100 d-flex flex-column" id="cardInstrumentos"><i class="bi bi-grid-3x3-gap-fill" style="font-size: 3rem; color: #6f42c1;"></i><h3 class="mt-3 fw-bold">Actividad por instrumentos</h3><p class="text-muted flex-grow-1">Define instrumentos, relación con criterios de la materia y califica.</p><button class="btn btn-purple mt-auto"><i class="bi bi-box-arrow-in-right"></i> Usar</button></div></div>
+            <div class="col-md-6"><div class="card home-card p-4 text-center h-100 d-flex flex-column" id="cardGeneric"><i class="bi bi-check2-circle" style="font-size: 3rem; color: #fd7e14;"></i><h3 class="mt-3 fw-bold">Actividad x criterios</h3><p class="text-muted flex-grow-1">Califica directamente cada criterio con nota 0-10.</p><button class="btn btn-warning mt-auto"><i class="bi bi-box-arrow-in-right"></i> Usar</button></div></div>
+            <div class="col-md-6"><div class="card home-card p-4 text-center h-100 d-flex flex-column" id="cardInstrumentos"><i class="bi bi-grid-3x3-gap-fill" style="font-size: 3rem; color: #6f42c1;"></i><h3 class="mt-3 fw-bold">Actividad x instrumentos</h3><p class="text-muted flex-grow-1">Define instrumentos, relación con criterios de la materia y califica.</p><button class="btn btn-purple mt-auto"><i class="bi bi-box-arrow-in-right"></i> Usar</button></div></div>
         </div>
         <div class="row g-4 justify-content-center mt-2">
             <div class="col-md-6"><div class="card home-card p-4 text-center h-100 d-flex flex-column" id="cardPonderacion"><i class="bi bi-layers-half" style="font-size: 3rem; color: #0dcaf0;"></i><h3 class="mt-3 fw-bold">Ponderación de actividades</h3><p class="text-muted flex-grow-1">Combina los resultados de varias actividades del mismo tipo aplicando un peso porcentual a cada una y obtén la nota ponderada por criterio.</p><button class="btn btn-info mt-auto text-white"><i class="bi bi-box-arrow-in-right"></i> Usar</button></div></div>
@@ -2912,10 +2910,10 @@
                                         <span class="fw-semibold small text-muted me-1"><i class="bi bi-funnel-fill"></i> Filtros:</span>
                                         <select class="form-select form-select-sm" id="fbAdminActAppFilter" style="max-width:200px;">
                                             <option value="">Todas las apps</option>
-                                            <option value="exam">Examen por preguntas</option>
+                                            <option value="exam">Examen x preguntas</option>
                                             <option value="test">Examen tipo test</option>
-                                            <option value="generic">Actividad por criterios</option>
-                                            <option value="instrumentos">Actividad por instrumentos</option>
+                                            <option value="generic">Actividad x criterios</option>
+                                            <option value="instrumentos">Actividad x instrumentos</option>
                                             <option value="ponderacion">Ponderación</option>
                                             <option value="rubricas">Rúbricas</option>
                                         </select>
@@ -3160,8 +3158,41 @@
                         <button type="button" class="btn btn-outline-warning active" id="fbAppLoadFilterMine" data-filter="mine"><i class="bi bi-person-fill"></i> Mis actividades</button>
                         <button type="button" class="btn btn-outline-warning" id="fbAppLoadFilterAll" data-filter="all"><i class="bi bi-people-fill"></i> Todas las actividades (admin)</button>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="fw-semibold">Actividades de: <span id="fbAppLoadAppLabel" class="badge bg-secondary fs-6"></span></span>
+                    <!-- Filtros ágiles para localizar actividades -->
+                    <div class="card mb-3" style="background:#fafbfc; border:1px solid #e8ecf1;">
+                        <div class="card-body py-2 px-3">
+                            <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                                <span class="fw-semibold small text-muted me-1"><i class="bi bi-funnel-fill"></i> Filtros:</span>
+                                <select class="form-select form-select-sm" id="fbAppLoadUserFilter" style="max-width:200px; display:none;">
+                                    <option value="">Todos los usuarios</option>
+                                </select>
+                                <select class="form-select form-select-sm" id="fbAppLoadKindFilter" style="max-width:180px;">
+                                    <option value="">Configuración + Calificaciones</option>
+                                    <option value="config">Solo configuración</option>
+                                    <option value="scores">Solo calificaciones</option>
+                                </select>
+                                <select class="form-select form-select-sm" id="fbAppLoadCourseFilter" style="max-width:170px;">
+                                    <option value="">Todos los cursos</option>
+                                </select>
+                                <select class="form-select form-select-sm" id="fbAppLoadSubjectFilter" style="max-width:220px;">
+                                    <option value="">Todas las materias</option>
+                                </select>
+                                <div class="form-check form-check-inline ms-1 mb-0">
+                                    <input class="form-check-input" type="checkbox" id="fbAppLoadCompleteFilter">
+                                    <label class="form-check-label small" for="fbAppLoadCompleteFilter" title="Solo configuraciones que tienen calificaciones vinculadas">Solo completas</label>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary" id="fbAppLoadClearFiltersBtn" title="Limpiar todos los filtros"><i class="bi bi-x-circle"></i> Limpiar</button>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-semibold small">Actividades de: <span id="fbAppLoadAppLabel" class="badge bg-secondary fs-6"></span></span>
+                                <div class="input-group input-group-sm" style="max-width:280px;">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="fbAppLoadSearch" placeholder="Buscar por nombre...">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end mb-2">
                         <span class="text-muted small"><span id="fbAppLoadCount">0</span> actividades</span>
                     </div>
                     <div id="fbAppLoadList"></div>
@@ -3436,7 +3467,7 @@ function groupCriteriaByCompetence(codes) {
 
 function populateCriteriaModal(app) {
     const label = subjectInfo.name ? `Criterios — ${subjectInfo.name}${subjectInfo.course ? ' ' + subjectInfo.course : ''}` : 'Criterios de la materia';
-    const TITLES = { exam:`${label} — Examen por preguntas`, test:`${label} — Tipo test`, generic:`${label} — Evaluación genérica`, rubric:`${label} — Evaluación de rúbricas` };
+    const TITLES = { exam:`${label} — Examen x preguntas`, test:`${label} — Tipo test`, generic:`${label} — Evaluación genérica`, rubric:`${label} — Evaluación de rúbricas` };
     document.getElementById('globalCriteriaModalTitle').textContent = TITLES[app] || label;
     const state = app === 'rubric' ? rubricState : appStates[app];
     const container = document.getElementById('globalCriteriaGroupedContainer');
@@ -4339,7 +4370,7 @@ function importAppScores(file, app) {
  *  Se llama al cargar una actividad nueva, una materia nueva, o un nuevo usuario,
  *  para que no queden calificaciones obsoletas de la actividad anterior. */
 function resetAllAppScores() {
-    // Examen por preguntas
+    // Examen x preguntas
     examState.scores = examState.students.map(() => new Array(examState.questions.length).fill(0));
     // Examen tipo test
     testState.studentScores = testState.students.map(() => ({ correct: 0, wrong: 0, unanswered: testState.totalQuestions }));
@@ -6961,10 +6992,10 @@ function updateScreenTitle(app) {
     if (!iconEl || !textEl) return;
     const titles = {
         home:         { icon: 'bi-house-door-fill',   text: 'Inicio',                              color: '#0b4b6b' },
-        exam:         { icon: 'bi-pencil-square',     text: 'Examen por preguntas',                color: '#0d6efd' },
+        exam:         { icon: 'bi-pencil-square',     text: 'Examen x preguntas',                  color: '#0d6efd' },
         test:         { icon: 'bi-calculator-fill',   text: 'Examen tipo test',                    color: '#198754' },
-        generic:      { icon: 'bi-check2-circle',     text: 'Actividad por criterios',             color: '#fd7e14' },
-        instrumentos: { icon: 'bi-grid-3x3-gap-fill', text: 'Actividad por instrumentos',          color: '#6f42c1' },
+        generic:      { icon: 'bi-check2-circle',     text: 'Actividad x criterios',               color: '#fd7e14' },
+        instrumentos: { icon: 'bi-grid-3x3-gap-fill', text: 'Actividad x instrumentos',            color: '#6f42c1' },
         ponderacion:  { icon: 'bi-layers-half',       text: 'Ponderación de actividades',          color: '#0dcaf0' },
         rubricas:     { icon: 'bi-grid-1x2-fill',     text: 'Evaluación de rúbricas',              color: '#f5576c' }
     };
@@ -7229,10 +7260,10 @@ function fb_init() {
 
 // Mapa nombre interno → nombre visible de las apps
 const FB_APP_LABELS = {
-    exam: 'Examen por preguntas',
+    exam: 'Examen x preguntas',
     test: 'Examen tipo test',
-    generic: 'Actividad por criterios',
-    instrumentos: 'Actividad por instrumentos',
+    generic: 'Actividad x criterios',
+    instrumentos: 'Actividad x instrumentos',
     ponderacion: 'Ponderación de actividades',
     rubricas: 'Evaluación de rúbricas'
 };
@@ -8904,7 +8935,7 @@ function fb_renderGroupsModalBody() {
     // Indicar la app actual
     const appLabelEl = document.getElementById('fbGroupsCurrentAppLabel');
     if (appLabelEl) {
-        const appLabels = { exam: 'Examen por preguntas', test: 'Examen tipo test', generic: 'Actividad por criterios', instrumentos: 'Actividad por instrumentos', rubricas: 'Rúbricas', home: 'Home (sin app activa)', ponderacion: 'Ponderación' };
+        const appLabels = { exam: 'Examen x preguntas', test: 'Examen tipo test', generic: 'Actividad x criterios', instrumentos: 'Actividad x instrumentos', rubricas: 'Rúbricas', home: 'Home (sin app activa)', ponderacion: 'Ponderación' };
         appLabelEl.textContent = `App activa: ${appLabels[currentApp] || currentApp || '—'}`;
     }
     fb_attachGroupsModalListeners();
@@ -9505,7 +9536,7 @@ function fb_adminRenderExam(activity, kind, data) {
     const linkedCfg = (kind === 'scores') ? fb_adminGetLinkedConfig(activity) : null;
     const linkedData = linkedCfg ? (linkedCfg.data || {}) : {};
     const linkedConfig = linkedData.config || linkedData || {};
-    let html = '<h6 class="fw-bold mt-2 mb-2" style="color:#0b4b6b;"><i class="bi bi-pencil-square me-1"></i>Examen por preguntas</h6>';
+    let html = '<h6 class="fw-bold mt-2 mb-2" style="color:#0b4b6b;"><i class="bi bi-pencil-square me-1"></i>Examen x preguntas</h6>';
     if (kind === 'config' || kind === 'scores') {
         // Resumen
         const questions = cfg.questions || linkedConfig.questions || [];
@@ -9684,7 +9715,7 @@ function fb_adminRenderTest(activity, kind, data) {
 // === ACTIVIDAD POR CRITERIOS (GENÉRICA) ===
 function fb_adminRenderGeneric(activity, kind, data) {
     const cfg = data.config || data;
-    let html = '<h6 class="fw-bold mt-2 mb-2" style="color:#0b4b6b;"><i class="bi bi-check2-circle me-1"></i>Actividad por criterios</h6>';
+    let html = '<h6 class="fw-bold mt-2 mb-2" style="color:#0b4b6b;"><i class="bi bi-check2-circle me-1"></i>Actividad x criterios</h6>';
     if (kind === 'config' || kind === 'scores') {
         html += `<div class="row g-2 mb-3 small">
             <div class="col-md-4"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Criterios</span><strong>${(cfg.globalCriteria || []).length}</strong></div></div>
@@ -9734,7 +9765,7 @@ function fb_adminRenderInstrumentos(activity, kind, data) {
     const sc0 = data.scores || (kind === 'scores' ? data : null);
     const instrumentsForSummary = cfg.instruments || (sc0 && sc0.instruments) || linkedConfig.instruments || [];
     const matrixForSummary = (sc0 && sc0.matrix) || cfg.matrix || linkedConfig.matrix || [];
-    let html = '<h6 class="fw-bold mt-2 mb-2" style="color:#0b4b6b;"><i class="bi bi-grid-3x3-gap-fill me-1"></i>Actividad por instrumentos</h6>';
+    let html = '<h6 class="fw-bold mt-2 mb-2" style="color:#0b4b6b;"><i class="bi bi-grid-3x3-gap-fill me-1"></i>Actividad x instrumentos</h6>';
     if (kind === 'config' || kind === 'scores') {
         html += `<div class="row g-2 mb-3 small">
             <div class="col-md-3"><div class="p-2 rounded-3 border bg-light"><span class="text-muted d-block">Instrumentos</span><strong>${instrumentsForSummary.length}</strong></div></div>
@@ -11289,8 +11320,17 @@ function fb_renderAppLoadList() {
     // Si un usuario no-admin tenía el filtro en 'all' (por error o cambio de rol),
     // forzarlo a 'mine' para no mostrarle actividades de otros.
     if (!isAdmin) _fbAppLoadOwnerFilter = 'mine';
-    // Filtrar por app y kind (config o scores)
-    const kind = _fbAppLoadModalKind || 'config';
+    // Sincronizar opciones de los filtros dinámicos (usuario, curso, materia)
+    _fbAppLoadSyncFilterOptions();
+    // Recoger valores de los filtros ágiles
+    const searchText   = (document.getElementById('fbAppLoadSearch')?.value || '').toLowerCase().trim();
+    const kindFilter   = document.getElementById('fbAppLoadKindFilter')?.value || '';
+    const userFilter   = document.getElementById('fbAppLoadUserFilter')?.value || '';
+    const courseFilter = document.getElementById('fbAppLoadCourseFilter')?.value || '';
+    const subjFilter   = document.getElementById('fbAppLoadSubjectFilter')?.value || '';
+    const onlyComplete = document.getElementById('fbAppLoadCompleteFilter')?.checked || false;
+    // El kind del modal puede ser overridden por el filtro de kind del usuario
+    const kind = kindFilter || _fbAppLoadModalKind || 'config';
     // Determinar qué actividades mostrar según filtro de propietario.
     // Solo el admin puede ver las actividades de todos los usuarios.
     let filtered;
@@ -11299,14 +11339,40 @@ function fb_renderAppLoadList() {
     } else {
         filtered = fbAllActivities.filter(a => a.app === _fbAppLoadModalApp && (a.kind || 'config') === kind && a.createdBy === (fbCurrentUser && fbCurrentUser.uid));
     }
+    // Aplicar filtro de usuario (solo admin con "Todas las actividades")
+    if (userFilter && isAdmin && _fbAppLoadOwnerFilter === 'all') {
+        filtered = filtered.filter(a => a.createdBy === userFilter);
+    }
+    // Aplicar filtro de curso
+    if (courseFilter) {
+        filtered = filtered.filter(a => fb_resolveRecordCourseId(a) === courseFilter);
+    }
+    // Aplicar filtro de materia
+    if (subjFilter) {
+        filtered = filtered.filter(a => (a.subjectId || '') === subjFilter);
+    }
+    // Aplicar filtro "Solo completas"
+    if (onlyComplete) {
+        filtered = filtered.filter(a => {
+            if (a.kind === 'scores') return false;
+            const configId = fb_getConfigFingerprintForRecord(a);
+            if (!configId) return false;
+            return fbAllActivities.some(s => s.kind === 'scores' && s.app === a.app && s.configId === configId);
+        });
+    }
     // Aislamiento por curso académico: solo registros del curso activo
-    filtered = filtered.filter(fb_recordInActiveCourse);
-    // Filtrar por materia
-    const currentSubjectId = fb_getSubjectFingerprint();
-    if (currentSubjectId) {
-        filtered = filtered.filter(a => (a.subjectId || '') === currentSubjectId);
-    } else {
-        filtered = [];
+    // (a menos que se haya seleccionado un curso específico en el filtro)
+    if (!courseFilter) {
+        filtered = filtered.filter(fb_recordInActiveCourse);
+    }
+    // Filtrar por materia: si no hay filtro de materia explícito, usar la materia activa
+    if (!subjFilter) {
+        const currentSubjectId = fb_getSubjectFingerprint();
+        if (currentSubjectId) {
+            filtered = filtered.filter(a => (a.subjectId || '') === currentSubjectId);
+        } else {
+            filtered = [];
+        }
     }
     // Si es 'scores', filtrar por configId actual
     let configName = '';
@@ -11324,9 +11390,17 @@ function fb_renderAppLoadList() {
             if (configName) labelEl.textContent += ' · Config: ' + configName;
         }
     }
+    // Aplicar búsqueda de texto
+    if (searchText) {
+        filtered = filtered.filter(a => {
+            const hay = ((a.name || '') + ' ' + (a.createdByName || '') + ' ' + (a.className || '')).toLowerCase();
+            return hay.includes(searchText);
+        });
+    }
     if (countSpan) countSpan.textContent = filtered.length;
     // El badge de propietario solo se muestra cuando el admin ve "Todas las actividades"
     const showOwnerBadge = isAdmin && _fbAppLoadOwnerFilter === 'all';
+    const currentSubjectId = fb_getSubjectFingerprint();
     if (filtered.length === 0) {
         const activeCourse = fbAllCourses.find(c => c.id === fbCurrentCourseId);
         const courseSuffix = activeCourse ? ` (aislado por curso: ${activeCourse.label})` : '';
@@ -11488,6 +11562,75 @@ function fb_renderAppLoadList() {
         }
         list.appendChild(wrapper);
     });
+}
+
+// Sincroniza las opciones de los filtros dinámicos del modal de carga
+// (usuario, curso, materia) con los datos actuales de fbAllActivities,
+// fbAllCourses y fbAllSubjects.
+function _fbAppLoadSyncFilterOptions() {
+    try {
+        const isAdmin = fbCurrentUser && fbCurrentUser.role === 'admin';
+        // Filtro de usuario: solo visible para el admin con "Todas las actividades"
+        const userSel = document.getElementById('fbAppLoadUserFilter');
+        if (userSel) {
+            userSel.style.display = (isAdmin && _fbAppLoadOwnerFilter === 'all') ? '' : 'none';
+            if (isAdmin) {
+                const currentValue = userSel.value || '';
+                const creators = {};
+                fbAllActivities.forEach(a => {
+                    if (a.app !== _fbAppLoadModalApp) return;
+                    if (a.createdBy && !creators[a.createdBy]) {
+                        creators[a.createdBy] = a.createdByName || 'Usuario';
+                    }
+                });
+                const opts = ['<option value="">Todos los usuarios</option>'];
+                Object.entries(creators).sort((a, b) => (a[1] || '').localeCompare(b[1] || '', 'es')).forEach(([uid, name]) => {
+                    opts.push(`<option value="${escapeHtml(uid)}">${escapeHtml(name)}</option>`);
+                });
+                const newHtml = opts.join('');
+                if (userSel.innerHTML !== newHtml) {
+                    userSel.innerHTML = newHtml;
+                    userSel.value = currentValue;
+                }
+            }
+        }
+        // Filtro de curso
+        const courseSel = document.getElementById('fbAppLoadCourseFilter');
+        if (courseSel) {
+            const currentValue = courseSel.value || '';
+            const opts = ['<option value="">Todos los cursos</option>'];
+            [...fbAllCourses].sort((a, b) => fb_compareCourses(a.label, b.label)).forEach(c => {
+                opts.push(`<option value="${escapeHtml(c.id)}">${escapeHtml(c.label)}${c.archived ? ' (archivado)' : ''}</option>`);
+            });
+            const newHtml = opts.join('');
+            if (courseSel.innerHTML !== newHtml) {
+                courseSel.innerHTML = newHtml;
+                courseSel.value = currentValue;
+            }
+        }
+        // Filtro de materia
+        const subjSel = document.getElementById('fbAppLoadSubjectFilter');
+        if (subjSel) {
+            const currentValue = subjSel.value || '';
+            const opts = ['<option value="">Todas las materias</option>'];
+            const merged = fb_getAllSubjectsMerged();
+            merged.sort((a, b) => {
+                const la = (a.name || 'Sin nombre') + ' ' + (a.course || '');
+                const lb = (b.name || 'Sin nombre') + ' ' + (b.course || '');
+                return la.localeCompare(lb, 'es');
+            }).forEach(s => {
+                const label = `${s.name || 'Sin nombre'}${s.course ? ' ' + s.course : ''}${s.isSaved === false ? ' (solo en actividades)' : ''}`;
+                opts.push(`<option value="${escapeHtml(s.subjectId || s.id)}">${escapeHtml(label)}</option>`);
+            });
+            const newHtml = opts.join('');
+            if (subjSel.innerHTML !== newHtml) {
+                subjSel.innerHTML = newHtml;
+                subjSel.value = currentValue;
+            }
+        }
+    } catch(e) {
+        console.warn('Error sincronizando filtros del modal de carga:', e);
+    }
 }
 
 // === GUARDAR/CARGAR CALIFICACIONES (kind: 'scores') ===
@@ -13407,19 +13550,7 @@ window.onload = function() {
         } else if (swConfirmedVersion) {
             return;
         }
-        // Chip de la cabecera (visible en todas las pantallas)
-        var chipText = document.getElementById('appVersionChipText');
-        var chip = document.getElementById('appVersionChip');
-        var dot = document.getElementById('appVersionSwDot');
-        if (chipText) chipText.textContent = 'v' + (version || APP_VERSION_FALLBACK);
-        if (chip) {
-            chip.title = 'Versión de la app' +
-                (source === 'sw' ? ' (service worker)' :
-                 source === 'script' ? ' (leída de sw.js)' : ' (estimada, sin SW)') +
-                ' · Service worker: ' + (swActivo() ? 'activo' : 'no disponible');
-        }
-        if (dot) dot.classList.toggle('on', swActivo());
-        // Footer clásico al pie de la pantalla de inicio (se mantiene el formato)
+        // Footer al pie de la pantalla de inicio
         var footer = document.getElementById('homeVersionFooter');
         if (footer) {
             var html = '';
@@ -13879,6 +14010,21 @@ window.onload = function() {
         _fbAppLoadOwnerFilter = 'all';
         this.classList.add('active');
         document.getElementById('fbAppLoadFilterMine')?.classList.remove('active');
+        fb_renderAppLoadList();
+    });
+    // Listeners para los nuevos filtros ágiles del modal de carga
+    ['fbAppLoadKindFilter','fbAppLoadUserFilter','fbAppLoadCourseFilter','fbAppLoadSubjectFilter'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', fb_renderAppLoadList);
+    });
+    document.getElementById('fbAppLoadCompleteFilter')?.addEventListener('change', fb_renderAppLoadList);
+    document.getElementById('fbAppLoadSearch')?.addEventListener('input', fb_renderAppLoadList);
+    document.getElementById('fbAppLoadClearFiltersBtn')?.addEventListener('click', function() {
+        document.getElementById('fbAppLoadKindFilter').value = '';
+        document.getElementById('fbAppLoadUserFilter').value = '';
+        document.getElementById('fbAppLoadCourseFilter').value = '';
+        document.getElementById('fbAppLoadSubjectFilter').value = '';
+        document.getElementById('fbAppLoadCompleteFilter').checked = false;
+        document.getElementById('fbAppLoadSearch').value = '';
         fb_renderAppLoadList();
     });
     // Delegated listeners for FB app/scores save/load buttons
