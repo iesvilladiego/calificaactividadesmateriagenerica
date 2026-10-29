@@ -1406,6 +1406,15 @@
             transform: translateY(-1px) !important;
             box-shadow: 0 4px 12px rgba(220,53,69,0.4) !important;
         }
+        /* Usuarios no-admin: botón de avatar clickable para abrir el panel de cuenta */
+        .fb-account-btn.user-clickable {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+        }
+        .fb-account-btn.user-clickable:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(5,150,105,0.3) !important;
+        }
         .fb-account-btn .fb-user-avatar {
             display: inline-flex; align-items: center; justify-content: center;
             width: 22px; height: 22px;
@@ -2035,8 +2044,9 @@
 <div class="container-custom">
     <!-- CABECERA — fila 1: título + acciones de usuario -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-2" style="gap:8px;">
-        <h1 class="fw-bold mb-0" style="color: #0b4b6b; font-size: clamp(1rem,3.5vw,1.5rem);">
-            <i class="bi bi-diagram-3 me-2" style="color: #0d6efd;"></i>EVALUACIÓN CRITERIAL · <span id="subjectNameDisplay">[sin materia]</span>
+        <h1 class="fw-bold mb-0 d-flex align-items-center" style="color: #0b4b6b; font-size: clamp(1rem,3.5vw,1.5rem); gap:8px;">
+            <span><i class="bi bi-diagram-3 me-2" style="color: #0d6efd;"></i>EVALUACIÓN CRITERIAL · <span id="subjectNameDisplay">[sin materia]</span></span>
+            <span id="appVersionChip" class="version-chip" title="Versión de la app"><span id="appVersionSwDot" class="sw-dot" aria-hidden="true"></span><span id="appVersionChipText">v?</span></span>
         </h1>
         <div class="d-flex align-items-center gap-2 flex-wrap">
             <span id="autosaveIndicator" class="autosave-indicator idle" title="Estado del guardado automático y sincronización entre pestañas y dispositivos">
@@ -2740,7 +2750,7 @@
 
 </div>
 <!-- FOOTER DE VERSIÓN (al pie de todas las pantallas) -->
-<footer id="homeVersionFooter" class="text-center mt-4 mb-2" style="font-size: 0.78rem; color: #94a3b8;"></footer>
+<footer id="homeVersionFooter" class="text-center mt-4 mb-2" style="font-size: 0.78rem; color: #94a3b8;">by @angelmicelti</footer>
 
 <!-- BARRA DE NAVEGACIÓN INFERIOR FIJA (solo móvil, ≤ 768px)
      Se rellena dinámicamente con clones de los botones de navegación
@@ -7671,7 +7681,7 @@ function fb_updateAccountUI() {
     // Botón informativo con avatar y nombre (abre panel de cuenta)
     if (userInfoBtn) {
         userInfoBtn.style.display = '';
-        userInfoBtn.className = 'fb-account-btn logged-in' + (isAdmin ? ' admin admin-clickable' : '');
+        userInfoBtn.className = 'fb-account-btn logged-in' + (isAdmin ? ' admin admin-clickable' : ' user-clickable');
         userInfoBtn.title = (isAdmin ? 'Administrador' : 'Profesor') + ': ' + (fbCurrentUser.displayName || 'Usuario') + (isAdmin ? ' (clic para administrar)' : ' (clic para ver cuenta)');
         userInfoBtn.innerHTML = `<span class="fb-user-avatar">${escapeHtml(initial)}</span> ${escapeHtml(fbCurrentUser.displayName || 'Usuario')} ${isAdmin ? '<span class="badge bg-danger ms-1" style="font-size:0.65em;">ADMIN</span>' : ''}`;
     }
@@ -13530,39 +13540,39 @@ window.onload = function() {
     }
 
     // === VERSIÓN DE LA APP DESDE EL SERVICE WORKER ===
-    // El chip de la cabecera (#appVersionChip) y el footer (#homeVersionFooter)
-    // se alimentan de la constante APP_VERSION definida en sw.js.
+    // El chip del título (#appVersionChip) se alimenta de la versión del SW.
     // Estrategia (por orden de prioridad):
     //   1) Mensaje GET_VERSION al SW activo → responde {type:'APP_VERSION'}.
     //   2) Fetch de sw.js y parseo del CACHE_NAME (fallback; sirve en GitHub Pages).
     //   3) Fallback estático con la versión de la UI (file:// o error de red).
-    var APP_VERSION_FALLBACK = '2.3'; // versión de la UI (title/intro) si no hay SW
-    var swConfirmedVersion = null;    // versión confirmada por el SW vía mensaje (autoritativa)
+    var APP_VERSION_FALLBACK = '2.4';
+    var swConfirmedVersion = null;
     function swActivo() {
         return !!(navigator.serviceWorker && navigator.serviceWorker.controller);
     }
     function setAppVersion(version, source) {
-        // La confirmación del SW (mensaje) manda: el fallback (fetch de sw.js)
-        // no debe sobrescribirla. Solo una respuesta más reciente del propio
-        // SW (tras una actualización) puede reemplazarla.
         if (source === 'sw') {
             swConfirmedVersion = version;
         } else if (swConfirmedVersion) {
             return;
         }
-        // Footer al pie de la pantalla de inicio
+        // Chip de versión junto al título
+        var chipText = document.getElementById('appVersionChipText');
+        var chip = document.getElementById('appVersionChip');
+        var dot = document.getElementById('appVersionSwDot');
+        var displayVersion = version || APP_VERSION_FALLBACK;
+        if (chipText) chipText.textContent = 'v' + displayVersion;
+        if (chip) {
+            chip.title = 'Versión de la app: v' + displayVersion +
+                (source === 'sw' ? ' (service worker)' :
+                 source === 'script' ? ' (leída de sw.js)' : ' (estimada)') +
+                ' · SW: ' + (swActivo() ? 'activo' : 'no disponible');
+        }
+        if (dot) dot.classList.toggle('on', swActivo());
+        // Footer: solo "by @angelmicelti"
         var footer = document.getElementById('homeVersionFooter');
         if (footer) {
-            var html = '';
-            if (version) {
-                html += '<span class="me-1">App <strong>v' + version + '</strong></span>';
-                if (swActivo()) {
-                    html += '<span class="me-1"><i class="bi bi-broadcast-pin" style="color:#198754;"></i> SW</span>';
-                }
-            }
-            html += '<span class="me-1">· Espacio: <strong>' + (window.FB_APP_ID || 'multimateria_v2') + '</strong></span>';
-            html += '<span>· by @angelmicelti</span>';
-            footer.innerHTML = html;
+            footer.innerHTML = 'by @angelmicelti';
         }
     }
     function parseVersionFromSwScript(text) {
