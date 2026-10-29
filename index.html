@@ -2820,7 +2820,7 @@
                     <button class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-info small mb-3"><i class="bi bi-info-circle-fill"></i> Aquí aparecen las <b>materias guardadas en la nube</b> (criterios almacenados), accesibles a cualquier usuario logueado. Pulsa <b>"Ver criterios"</b> para consultar el listado completo de criterios de evaluación de una materia. <b>Solo el administrador</b> ve además las materias referenciadas por actividades de otros usuarios.</div>
+                    <div class="alert alert-info small mb-3"><i class="bi bi-info-circle-fill"></i> Aquí aparecen <b>todas las asignaturas</b> de la nube: tanto las guardadas explícitamente como las referenciadas por actividades. Cualquier usuario logueado puede verlas, consultar sus criterios y cargarlas. Pulsa <b>"Ver criterios"</b> para consultar el listado completo de criterios de evaluación.</div>
                     <div id="fbSubjectsList"></div>
                 </div>
                 <div class="modal-footer">
@@ -8232,23 +8232,15 @@ function fb_renderSubjectsModal() {
     if (!list) return;
     list.innerHTML = '';
     const isAdmin = fbCurrentUser && fbCurrentUser.role === 'admin';
-    // Los usuarios no-admin solo pueden ver las materias guardadas explícitamente
-    // en la nube (criterios almacenados). No pueden ver materias "referenciadas"
-    // reconstruidas a partir de actividades de otros usuarios (eso revelaría info
-    // sobre qué hacen otros usuarios). Solo el admin ve la lista combinada.
-    let merged;
-    if (isAdmin) {
-        // Admin: ver materias guardadas + referenciadas por actividades, con metadatos completos
-        merged = fb_getAllSubjectsMerged();
-    } else {
-        // Usuario no-admin: solo materias guardadas explícitamente (criterios almacenados)
-        merged = fbAllSubjects.map(s => ({ ...s, isSaved: true, activityCount: 0 }));
-    }
+    // Todos los usuarios logueados pueden ver TODAS las asignaturas subidas
+    // a la nube: tanto las guardadas explícitamente como las referenciadas
+    // por actividades. Las asignaturas (criterios) son compartidas y no
+    // revelan información personal de otros usuarios.
+    // La diferencia es que el admin ve además metadatos (nº de actividades,
+    // lista de usuarios que la usan); el resto solo ve info básica.
+    const merged = fb_getAllSubjectsMerged();
     if (merged.length === 0) {
-        const emptyMsg = isAdmin
-            ? 'Aún no hay materias en la nube. Guarda o crea una actividad para que su materia aparezca aquí.'
-            : 'Aún no hay materias guardadas en la nube. Sube un archivo .json de materia (se guardará automáticamente) o pide a otro usuario que comparta una.';
-        list.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-journal-x" style="font-size:2.5rem;"></i><p class="mt-2 mb-0">' + escapeHtml(emptyMsg) + '</p></div>';
+        list.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-journal-x" style="font-size:2.5rem;"></i><p class="mt-2 mb-0">Aún no hay materias en la nube. Sube un archivo .json de materia (se guardará automáticamente) o pide a otro usuario que comparta una.</p></div>';
         return;
     }
     // Ordenar por nombre (las guardadas primero si hay empate)
@@ -8419,13 +8411,12 @@ function fb_viewSubjectCriteria(subjectId) {
     // Buscar la materia en fbAllSubjects (guardada). Siempre accesible a cualquier
     // usuario logueado (los criterios almacenados son compartidos).
     const saved = fbAllSubjects.find(s => (s.subjectId || s.id) === subjectId);
-    // Las materias "referenciadas" (reconstruidas a partir de actividades) solo
-    // las puede ver el admin, ya que revelan info sobre actividades de otros usuarios.
-    let referenced = null;
-    if (isAdmin) {
-        const referencedList = fb_getReferencedSubjects();
-        referenced = referencedList.find(s => s.subjectId === subjectId);
-    }
+    // Las materias "referenciadas" (reconstruidas a partir de actividades) son
+    // accesibles a cualquier usuario logueado: las asignaturas y sus criterios
+    // son compartidos y no revelan información personal.
+    // El admin ve además metadatos adicionales (nº de actividades, usuarios).
+    const referencedList = fb_getReferencedSubjects();
+    const referenced = referencedList.find(s => s.subjectId === subjectId);
     if (!saved && !referenced) {
         alert('No se encontró la materia.');
         return;
