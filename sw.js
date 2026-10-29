@@ -8,7 +8,7 @@
 // ⚠ IMPORTANTE: cada vez que cambie index.html hay que subir la versión en
 //   CACHE_NAME (p. ej. v2.1.0 → v2.1.1) o los usuarios seguirán viendo la
 //   copia antigua del HTML (estrategia cache-first).
-const CACHE_NAME = 'eval-criterial-multimateria-v2.5.2';
+const CACHE_NAME = 'eval-criterial-multimateria-v2.5.3';
 const APP_VERSION = (CACHE_NAME.match(/v([\d.]+)$/) || [])[1] || '2.1.1';
 const BASE_PATH = self.registration.scope; // '/calificaactividadesmateriagenerica/' — se deriva del scope del SW (inmune a cambios de carpeta)
 const URLS_TO_CACHE = [
