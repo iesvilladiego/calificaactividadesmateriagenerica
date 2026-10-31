@@ -7967,11 +7967,11 @@ function fb_subscribeCourses() {
 // Los campos siguen siendo editables para permitir grupos aún no registrados.
 function fb_refreshActivityGroupOptions() {
     const course = fbAllCourses.find(c => c.id === fbCurrentCourseId);
-    const groups = Object.values(course?.groups || {})
-        .filter(g => g && (!g.appId || g.appId === FB_APP_ID) && g.name)
-        .map(g => String(g.name).trim())
-        .filter(Boolean);
-    const uniqueGroups = [...new Set(groups)].sort((a, b) => a.localeCompare(b, 'es'));
+    const groups = Object.entries(course?.groups || {})
+        .filter(([, g]) => g && (!g.appId || g.appId === FB_APP_ID) && g.name)
+        .map(([id, g]) => ({ id, name: String(g.name).trim() }))
+        .filter(g => g.name)
+        .sort((a, b) => a.name.localeCompare(b.name, 'es'));
     const inputIds = ['examCourseInput', 'testCourseInput', 'genericCourseInput', 'inst_claseInput', 'rubricGroupNameInput'];
     inputIds.forEach((inputId, index) => {
         const input = document.getElementById(inputId);
@@ -7984,26 +7984,37 @@ function fb_refreshActivityGroupOptions() {
             document.body.appendChild(datalist);
         }
         input.setAttribute('list', listId);
-        datalist.innerHTML = uniqueGroups.map(name => `<option value="${escapeHtml(name)}"></option>`).join('');
+        datalist.innerHTML = [...new Set(groups.map(g => g.name))].map(name => `<option value="${escapeHtml(name)}"></option>`).join('');
+        const selectorId = `fbActivityGroupSelect${index}`;
+        let selector = document.getElementById(selectorId);
+        if (!selector) {
+            selector = document.createElement('select');
+            selector.id = selectorId;
+            selector.className = 'form-select form-select-sm mt-1';
+            selector.setAttribute('aria-label', 'Seleccionar grupo guardado e importar su alumnado');
+            input.insertAdjacentElement('afterend', selector);
+        }
+        selector.innerHTML = '<option value="">Selecciona un grupo guardado…</option>' +
+            groups.map(g => `<option value="${escapeHtml(g.id)}">${escapeHtml(g.name)}</option>`).join('');
         if (input.dataset.groupImportBound !== 'true') {
             input.dataset.groupImportBound = 'true';
             const appByInput = {
                 examCourseInput: 'exam', testCourseInput: 'test', genericCourseInput: 'generic',
                 inst_claseInput: 'instrumentos', rubricGroupNameInput: 'rubricas'
             };
-            input.addEventListener('change', function() {
-                if (!fbCurrentCourseId || !this.value.trim()) return;
-                const courseNow = fbAllCourses.find(c => c.id === fbCurrentCourseId);
-                const selectedGroup = Object.entries(courseNow?.groups || {}).find(([, group]) =>
-                    group && (!group.appId || group.appId === FB_APP_ID) &&
-                    String(group.name || '').trim().toLocaleLowerCase('es') === this.value.trim().toLocaleLowerCase('es')
-                );
-                if (selectedGroup) {
-                    fb_importGroupStudents(fbCurrentCourseId, selectedGroup[0], {
-                        automatic: true,
-                        app: appByInput[inputId]
-                    });
-                }
+            selector.addEventListener('change', function() {
+                const groupId = this.value;
+                if (!groupId || !fbCurrentCourseId) return;
+                const selectedGroup = fbAllCourses.find(c => c.id === fbCurrentCourseId)?.groups?.[groupId];
+                if (!selectedGroup) return;
+                input.value = selectedGroup.name || '';
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                fb_importGroupStudents(fbCurrentCourseId, groupId, {
+                    automatic: true,
+                    app: appByInput[inputId]
+                });
+                // Permitir volver a seleccionar el mismo grupo más adelante.
+                this.value = '';
             });
         }
     });
