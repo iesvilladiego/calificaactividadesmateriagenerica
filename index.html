@@ -8105,7 +8105,7 @@ function fb_saveSubjectToCloud() {
     if (!subjectId) { alert('No se pudo identificar la materia.'); return; }
     const firebaseKey = fb_getSubjectId();
     // Comprobar si ya existe
-    const existing = fbAllSubjects.find(s => s.id === firebaseKey);
+    const existing = fbAllSubjects.find(s => s.id === firebaseKey || s.subjectId === subjectId);
     if (existing) {
         if (!confirm(`⚠️ Ya existe una materia "${existing.name}" en la nube.\n\n¿Quieres SOBRESCRIBIRLA con los datos actuales?`)) return;
     }
@@ -8113,9 +8113,9 @@ function fb_saveSubjectToCloud() {
         appId: FB_APP_ID,          // marca de aislamiento entre apps del mismo proyecto Firebase
         name: subjectInfo.name,
         course: subjectInfo.course || '',
-        criteriaCodes: [...subjectInfo.criteriaCodes],
+        criteriaCodes: [...new Set(subjectInfo.criteriaCodes)],
         criteriaDescriptions: Object.fromEntries(
-            Object.entries(subjectInfo.criteriaDescriptions).map(([k, v]) => [k.replace(/\./g, '_'), v])
+            Object.entries(subjectInfo.criteriaDescriptions).map(([k, v]) => [k.replace(/[.#$/\[\]]/g, ch => '\\x' + ch.charCodeAt(0).toString(16).padStart(2, '0')), v])
         ),
         subjectId: subjectId,
         updatedAt: Date.now(),
@@ -8156,7 +8156,7 @@ function fb_saveSubjectToCloudAuto() {
         const firebaseKey = fb_getSubjectId();
         if (!firebaseKey) { resolve({ status: 'no_data' }); return; }
         // Comprobar si ya existe en la nube (sin sobrescribir)
-        const existing = fbAllSubjects.find(s => s.id === firebaseKey);
+        const existing = fbAllSubjects.find(s => s.id === firebaseKey || s.subjectId === subjectId);
         if (existing) { resolve({ status: 'already_exists', existing }); return; }
         // Construir el registro y guardarlo
         const now = Date.now();
@@ -8164,9 +8164,9 @@ function fb_saveSubjectToCloudAuto() {
             appId: FB_APP_ID,
             name: subjectInfo.name,
             course: subjectInfo.course || '',
-            criteriaCodes: [...subjectInfo.criteriaCodes],
+            criteriaCodes: [...new Set(subjectInfo.criteriaCodes)],
             criteriaDescriptions: Object.fromEntries(
-                Object.entries(subjectInfo.criteriaDescriptions).map(([k, v]) => [k.replace(/\./g, '_'), v])
+                Object.entries(subjectInfo.criteriaDescriptions).map(([k, v]) => [k.replace(/[.#$/\[\]]/g, ch => '\\x' + ch.charCodeAt(0).toString(16).padStart(2, '0')), v])
             ),
             subjectId: subjectId,
             createdAt: now,
@@ -8187,10 +8187,8 @@ function fb_loadSubjectFromCloud(subject) {
     subjectInfo.name = subject.name;
     subjectInfo.course = subject.course || '';
     subjectInfo.criteriaCodes = [...subject.criteriaCodes];
-    // Revertir sanitización de claves (puntos → underscores → puntos)
-    subjectInfo.criteriaDescriptions = Object.fromEntries(
-        Object.entries(subject.criteriaDescriptions || {}).map(([k, v]) => [k.replace(/_/g, '.'), v])
-    );
+    // Revertir la codificación reversible usada para claves de Firebase.
+    subjectInfo.criteriaDescriptions = fb_decodeSubjectDescriptions(subject.criteriaDescriptions);
     // Resetear criterios seleccionados y calificaciones
     ['exam','test','generic'].forEach(app => {
         appStates[app].globalCriteria = [];
@@ -8256,13 +8254,10 @@ function fb_renderSubjectsModal() {
         card.className = 'fb-activity-card';
         const updated = s.updatedAt ? new Date(s.updatedAt).toLocaleDateString('es-ES') : '—';
         const criteriaCount = s.criteriaCodes?.length || 0;
-        // El badge de fuente (Guardada / Solo en actividades) solo es relevante para el admin,
-        // ya que los usuarios no-admin solo ven materias guardadas.
-        const sourceBadge = isAdmin
-            ? (s.isSaved === false
+        // Indicar si la materia está guardada o se reconstruye desde actividades.
+        const sourceBadge = s.isSaved === false
                 ? '<span class="badge bg-info ms-1" style="font-size:0.65em;" title="Materia no guardada explícitamente; criterios reconstruidos a partir de las actividades que la referencian"><i class="bi bi-info-circle"></i> Solo en actividades</span>'
-                : '<span class="badge bg-success ms-1" style="font-size:0.65em;" title="Materia guardada explícitamente en la nube"><i class="bi bi-cloud-check"></i> Guardada</span>')
-            : '';
+                : '<span class="badge bg-success ms-1" style="font-size:0.65em;" title="Materia guardada explícitamente en la nube"><i class="bi bi-cloud-check"></i> Guardada</span>';
         // El conteo de actividades y la lista de usuarios solo se muestra al admin
         // (revelaría info sobre otros usuarios).
         const activityCountBadge = (isAdmin && (s.activityCount || 0) > 0)
@@ -8284,7 +8279,7 @@ function fb_renderSubjectsModal() {
             </div>
             <div class="fb-act-actions">
                 <button class="fb-act-action-btn view-criteria-btn" title="Ver todos los criterios de evaluación de esta materia"><i class="bi bi-list-check"></i> Ver criterios</button>
-                ${s.isSaved !== false ? '<button class="fb-act-action-btn load-btn" title="Cargar esta materia en la app"><i class="bi bi-cloud-arrow-down"></i> Cargar</button>' : ''}
+                ${s.criteriaCodes?.length ? '<button class="fb-act-action-btn load-btn" title="Cargar esta materia en la app"><i class="bi bi-cloud-arrow-down"></i> Cargar</button>' : ''}
                 ${isAdmin && s.isSaved !== false ? '<button class="fb-act-action-btn delete-btn" title="Eliminar materia"><i class="bi bi-trash3"></i> Eliminar</button>' : ''}
             </div>
         `;
@@ -8351,12 +8346,13 @@ function fb_getReferencedSubjects() {
         const cfg = a.data?.config || a.data || {};
         const criteria = cfg.globalCriteria || cfg.criteria || [];
         if (Array.isArray(criteria)) criteria.forEach(c => entry.criteriaSet.add(c));
+        // Algunas actividades guardan criterios dentro de preguntas o rúbricas,
+        // sin globalCriteria; recuperarlos evita ocultar materias referenciadas.
+        (cfg.questions || []).forEach(q => (q.criteriaCodes || []).forEach(c => entry.criteriaSet.add(c)));
         // Recopilar descripciones personalizadas de criterios
         const descMap = cfg.criteriaDescriptions || {};
-        Object.entries(descMap).forEach(([k, v]) => {
-            // Las claves pueden tener _ en vez de . (sanitización Firebase)
-            const code = k.replace(/_/g, '.');
-            if (!entry.descriptions[code]) entry.descriptions[code] = v;
+        Object.entries(fb_decodeSubjectDescriptions(descMap)).forEach(([code, value]) => {
+            if (!entry.descriptions[code]) entry.descriptions[code] = value;
         });
     });
     // Convertir Sets a arrays y a listas
@@ -8428,10 +8424,7 @@ function fb_viewSubjectCriteria(subjectId) {
     const descriptions = {};
     if (saved && Array.isArray(saved.criteriaCodes)) {
         saved.criteriaCodes.forEach(c => criteriaCodes.add(c));
-        // Las claves de criteriaDescriptions pueden tener _ en vez de .
-        Object.entries(saved.criteriaDescriptions || {}).forEach(([k, v]) => {
-            descriptions[k.replace(/_/g, '.')] = v;
-        });
+        Object.assign(descriptions, fb_decodeSubjectDescriptions(saved.criteriaDescriptions));
     }
     if (referenced) {
         referenced.criteriaCodes.forEach(c => criteriaCodes.add(c));
@@ -11125,7 +11118,7 @@ let _fbAppLoadModalKind = 'config'; // 'config' (cargar config) o 'scores' (carg
 // Sirve para asociar actividades a materias y filtrarlas.
 function fb_getSubjectFingerprint() {
     if (!subjectInfo.name) return '';
-    const codes = [...subjectInfo.criteriaCodes].sort().join(',');
+    const codes = [...new Set(subjectInfo.criteriaCodes)].sort().join(',');
     return `${subjectInfo.name}||${subjectInfo.course || ''}||${codes}`;
 }
 
@@ -11140,6 +11133,19 @@ function fb_getSubjectId() {
         hash = hash & hash; // Convertir a 32bit
     }
     return 'subj_' + Math.abs(hash).toString(36);
+}
+
+// Decodifica claves de descripciones almacenadas en Firebase. Los registros
+// antiguos reemplazaban puntos por guiones bajos; los nuevos usan escape reversible.
+function fb_decodeSubjectDescriptions(descriptions) {
+    const decoded = {};
+    Object.entries(descriptions || {}).forEach(([key, value]) => {
+        const code = key.includes('\\x')
+            ? key.replace(/\\x([0-9a-fA-F]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+            : key.replace(/_/g, '.');
+        decoded[code] = value;
+    });
+    return decoded;
 }
 
 // Busca si ya existe una actividad (kind='config') con el mismo nombre, app, grupo, materia y usuario
