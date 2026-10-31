@@ -7949,6 +7949,7 @@ function fb_subscribeCourses() {
         if (!fbCurrentCourseId) {
             fb_recomputeCurrentCourse(false);
         }
+        fb_refreshActivityGroupOptions();
         // Actualizar el badge de curso de la cabecera y los modales abiertos
         fb_updateHeaderCourseBadge();
         const groupsModal = document.getElementById('fbGroupsModal');
@@ -7960,6 +7961,31 @@ function fb_subscribeCourses() {
             try { fb_renderAppLoadList(); } catch (e) {}
         }
     }, err => console.warn('Error suscripción cursos:', err));
+}
+
+// Alimenta autocompletado de grupo con los grupos del curso académico activo.
+// Los campos siguen siendo editables para permitir grupos aún no registrados.
+function fb_refreshActivityGroupOptions() {
+    const course = fbAllCourses.find(c => c.id === fbCurrentCourseId);
+    const groups = Object.values(course?.groups || {})
+        .filter(g => g && (!g.appId || g.appId === FB_APP_ID) && g.name)
+        .map(g => String(g.name).trim())
+        .filter(Boolean);
+    const uniqueGroups = [...new Set(groups)].sort((a, b) => a.localeCompare(b, 'es'));
+    const inputIds = ['examCourseInput', 'testCourseInput', 'genericCourseInput', 'inst_claseInput', 'pond_cursoInput', 'rubricGroupNameInput'];
+    inputIds.forEach((inputId, index) => {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const listId = `fbActivityGroupsList${index}`;
+        let datalist = document.getElementById(listId);
+        if (!datalist) {
+            datalist = document.createElement('datalist');
+            datalist.id = listId;
+            document.body.appendChild(datalist);
+        }
+        input.setAttribute('list', listId);
+        datalist.innerHTML = uniqueGroups.map(name => `<option value="${escapeHtml(name)}"></option>`).join('');
+    });
 }
 
 // Crear un nuevo curso
@@ -9033,7 +9059,7 @@ function fb_attachGroupsModalListeners() {
     if (courseSelect) {
         courseSelect.addEventListener('change', function() {
             fbCurrentCourseId = this.value || null;
-
+            fb_refreshActivityGroupOptions();
             fb_renderGroupsModalBody();
         });
     }
