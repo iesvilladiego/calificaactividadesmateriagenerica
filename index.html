@@ -2947,6 +2947,7 @@
                                             <label class="form-check-label small" for="fbAdminActCompleteFilter" title="Solo configuraciones que tienen calificaciones vinculadas">Solo completas</label>
                                         </div>
                                         <button class="btn btn-sm btn-outline-secondary" id="fbAdminActClearFiltersBtn" title="Limpiar todos los filtros"><i class="bi bi-x-circle"></i> Limpiar</button>
+                                        <button class="btn btn-sm btn-outline-danger" id="fbAdminActDeduplicateBtn" title="Conservar la copia más reciente de cada actividad repetida"><i class="bi bi-intersect"></i> Eliminar copias</button>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="fw-semibold small">Actividades en la nube <span class="badge bg-primary" id="fbAdminActCount">0</span></span>
@@ -7235,6 +7236,7 @@ let fbAuth = null;
 let fbCurrentUser = null;     // {uid, email, displayName, role}
 let fbProfileUnsub = null;    // callback para cancelar el listener del perfil del usuario actual
 let fbActivitiesUnsub = null; // suscripción onValue para actividades
+let _fbActivitiesListenerUid = null;
 let fbUsersUnsub = null;      // suscripción onValue para usuarios (solo admin)
 let fbAllActivities = [];     // cache en memoria de actividades
 let fbAllUsers = [];          // cache en memoria de usuarios
@@ -7249,6 +7251,7 @@ let fbActiveCourseOverrideId = null; // curso fijado globalmente por el admin (o
 // === Estado de materias en la nube ===
 let fbAllSubjects = [];       // cache en memoria de materias guardadas
 let fbSubjectsUnsub = null;   // suscripción onValue para materias
+let _fbAuthGeneration = 0;    // invalida tareas de auth anteriores que terminen tarde
 // Flag para sincronizar la materia local con la nube tras el login.
 // Se pone a true al iniciar sesión y a false cuando la primera carga
 // de fbAllSubjects lo procesa y dispara la sincronización.
@@ -7258,7 +7261,9 @@ let _fbSyncLocalSubjectPending = false;
 function fb_init() {
     if (fbApp) return;
     try {
-        fbApp = firebase.initializeApp(FB_CONFIG);
+        // Evitar el error "already exists" si otro módulo ya inicializó Firebase.
+        try { fbApp = firebase.app(); }
+        catch (_) { fbApp = firebase.initializeApp(FB_CONFIG); }
         fbDb = firebase.database();
         fbAuth = firebase.auth();
         // Escuchar cambios de auth
@@ -7402,15 +7407,11 @@ function fb_loadCurrentUserProfile(user) {
     });
 }
 
-// Flag para forzar logout en la primera carga de la página.
-// Firebase Auth restaura sesiones de forma asíncrona, así que no podemos
-// comprobar fbAuth.currentUser en window.onload (todavía es null). En su
-// lugar, usamos este flag en onAuthStateChanged para cerrar la sesión
-// la primera vez que Firebase nos notifique que hay un usuario.
-let _forceLogoutOnLoad = true;
+// Conservado por compatibilidad: las sesiones restauradas deben permanecer
+// activas al recargar la página.
+let _forceLogoutOnLoad = false;
 
 // Limpia completamente la materia cargada y todos los criterios de todas las apps.
-// Se llama al forzar logout en la carga inicial y al hacer logout manual.
 function _clearAllSubjectAndCriteria() {
     try {
         // Limpiar subjectInfo
@@ -7442,16 +7443,9 @@ function _clearAllSubjectAndCriteria() {
 
 // Callback de cambio de auth
 function fb_onAuthStateChanged(user) {
+    const authGeneration = ++_fbAuthGeneration;
     try {
-        // Si es la primera carga y hay usuario, forzar logout
-        if (_forceLogoutOnLoad && user) {
-            _forceLogoutOnLoad = false;
-            console.info('[Auth] Forzando logout en carga inicial.');
-            // Limpiar completamente la materia y los criterios antes de hacer logout
-            _clearAllSubjectAndCriteria();
-            try { fbAuth.signOut().catch(() => {}); } catch(e) {}
-            return; // No procesar el estado de auth, se disparará de nuevo con user=null
-        }
+        // Firebase restaura la sesión de forma asíncrona; conservarla al cargar.
         _forceLogoutOnLoad = false; // Ya procesamos la primera carga
         if (user) {
             // Marcar que hay que sincronizar la materia local con la nube
@@ -7460,6 +7454,7 @@ function fb_onAuthStateChanged(user) {
             // que haya en local se sincronizará con la información de la nube".
             _fbSyncLocalSubjectPending = true;
             fb_loadCurrentUserProfile(user).then(() => {
+                if (authGeneration !== _fbAuthGeneration || !fbAuth || !fbAuth.currentUser || fbAuth.currentUser.uid !== user.uid) return;
                 fb_subscribeActivities();
                 fb_subscribeSubjects();
                 // Suscribirse a cursos académicos (admin o usuario normal)
@@ -7479,11 +7474,11 @@ function fb_onAuthStateChanged(user) {
             // Logout: cancelar listener del perfil y limpiar estado
             if (fbProfileUnsub) { try { fbProfileUnsub(); } catch(e) {} fbProfileUnsub = null; }
             fbCurrentUser = null;
-            // Cancelar flag de sincronización pendiente (no hay sesión, no hay nada que sincronizar)
             _fbSyncLocalSubjectPending = false;
             // Resetear el ID de config trackeado por el autosave (no hay sesión activa)
             _autosaveCloudConfigId = null;
             if (fbActivitiesUnsub) { try { fbActivitiesUnsub(); } catch(e) {} fbActivitiesUnsub = null; }
+            _fbActivitiesListenerUid = null;
             if (fbSubjectsUnsub) { try { fbSubjectsUnsub(); } catch(e) {} fbSubjectsUnsub = null; }
             if (fbUsersUnsub) { try { fbUsersUnsub(); } catch(e) {} fbUsersUnsub = null; }
             if (fbCoursesUnsub) { try { fbCoursesUnsub(); } catch(e) {} fbCoursesUnsub = null; }
@@ -7547,6 +7542,7 @@ function fb_logout() {
     // Cancelar listeners inmediatamente para evitar que disparen tras el logout
     if (fbProfileUnsub) { try { fbProfileUnsub(); } catch(e) {} fbProfileUnsub = null; }
     if (fbActivitiesUnsub) { try { fbActivitiesUnsub(); } catch(e) {} fbActivitiesUnsub = null; }
+    _fbActivitiesListenerUid = null;
     if (fbSubjectsUnsub) { try { fbSubjectsUnsub(); } catch(e) {} fbSubjectsUnsub = null; }
     if (fbUsersUnsub) { try { fbUsersUnsub(); } catch(e) {} fbUsersUnsub = null; }
     if (fbCoursesUnsub) { try { fbCoursesUnsub(); } catch(e) {} fbCoursesUnsub = null; }
@@ -7721,7 +7717,11 @@ function fb_updateCloudUI() {
 
 // === SUSCRIPCIÓN EN TIEMPO REAL A ACTIVIDADES ===
 function fb_subscribeActivities() {
+    const uid = fbCurrentUser && fbCurrentUser.uid;
+    if (!uid || !fbDb) return;
+    if (fbActivitiesUnsub && _fbActivitiesListenerUid === uid) return;
     if (fbActivitiesUnsub) fbActivitiesUnsub();
+    _fbActivitiesListenerUid = uid;
     const ref = fbDb.ref(FB_ACTIVITIES_PATH).orderByChild('updatedAt');
     fbActivitiesUnsub = ref.on('value', snap => {
         const data = snap.val() || {};
@@ -10162,6 +10162,7 @@ function fb_deleteOwnAccount() {
     // 4. Cerrar listeners
     if (fbProfileUnsub) { try { fbProfileUnsub(); } catch(e) {} fbProfileUnsub = null; }
     if (fbActivitiesUnsub) { try { fbActivitiesUnsub(); } catch(e) {} fbActivitiesUnsub = null; }
+    _fbActivitiesListenerUid = null;
     if (fbSubjectsUnsub) { try { fbSubjectsUnsub(); } catch(e) {} fbSubjectsUnsub = null; }
     if (fbUsersUnsub) { try { fbUsersUnsub(); } catch(e) {} fbUsersUnsub = null; }
     if (fbCoursesUnsub) { try { fbCoursesUnsub(); } catch(e) {} fbCoursesUnsub = null; }
@@ -11110,6 +11111,55 @@ function fb_deleteActivity(activity) {
         .catch(err => { alert('Error: ' + err.message); throw err; });
 }
 
+// Elimina duplicados de actividades, conservando el registro más reciente de
+// cada combinación de propietario, tipo, app, curso, materia, grupo y nombre.
+async function fb_adminDeduplicateActivities() {
+    if (!fbCurrentUser || fbCurrentUser.role !== 'admin') {
+        alert('Solo un administrador puede limpiar duplicados de todos los usuarios.');
+        return;
+    }
+    const button = document.getElementById('fbAdminActDeduplicateBtn');
+    if (button) button.disabled = true;
+    try {
+        // Leer la fuente completa justo antes de calcular y borrar.
+        const snap = await fbDb.ref(FB_ACTIVITIES_PATH).once('value');
+        const data = snap.val() || {};
+        const groups = new Map();
+        Object.entries(data).forEach(([id, value]) => {
+            if (!value || (value.appId && value.appId !== FB_APP_ID)) return;
+            const kind = value.kind || 'config';
+            const groupKey = [
+                value.createdBy || '', kind, value.app || '',
+                value.courseId || '', value.subjectId || '',
+                (value.className || '').trim().toLocaleLowerCase('es'),
+                (value.name || '').trim().toLocaleLowerCase('es')
+            ].join('|');
+            if (!groups.has(groupKey)) groups.set(groupKey, []);
+            groups.get(groupKey).push({ id, value, timestamp: value.updatedAt || value.createdAt || 0 });
+        });
+        const toDelete = [];
+        groups.forEach(items => {
+            if (items.length < 2) return;
+            // Más reciente gana; el id resuelve empates de forma determinista.
+            items.sort((a, b) => b.timestamp - a.timestamp || b.id.localeCompare(a.id));
+            items.slice(1).forEach(item => toDelete.push(item));
+        });
+        if (!toDelete.length) {
+            alert('No se encontraron actividades duplicadas.');
+            return;
+        }
+        const sample = toDelete.slice(0, 8).map(item => `• ${item.value.name || '(sin nombre)'} — ${item.value.createdByName || item.value.createdBy || 'usuario'}`).join('\n');
+        if (!confirm(`Se encontraron ${toDelete.length} copia(s) duplicada(s). Se conservará la más reciente de cada actividad y se eliminará el resto.\n\n${sample}${toDelete.length > 8 ? '\n…' : ''}\n\n¿Continuar? Esta acción no se puede deshacer.`)) return;
+        await Promise.all(toDelete.map(item => fbDb.ref(`${FB_ACTIVITIES_PATH}/${item.id}`).remove()));
+        alert(`✅ Limpieza completada. Se eliminaron ${toDelete.length} copias duplicadas; se conservó la más reciente de cada actividad.`);
+    } catch (err) {
+        console.error('Error eliminando duplicados de actividades:', err);
+        alert('No se pudieron limpiar todos los duplicados: ' + (err.message || err));
+    } finally {
+        if (button) button.disabled = false;
+    }
+}
+
 // === GUARDAR/CARGAR DESDE BOTONES DE CADA APP ===
 let _fbAppLoadModalApp = null; // app actual del modal de carga (exam, test, generic, instrumentos, rubricas)
 let _fbAppLoadModalKind = 'config'; // 'config' (cargar config) o 'scores' (cargar calificaciones)
@@ -11227,6 +11277,20 @@ function fb_saveConfigRecord(app, name, data, existingId, onSuccess, onError) {
             })
             .catch(err => { if (onError) onError(err); });
     } else {
+        // Segunda comprobación justo antes de insertar: el callback de
+        // confirmación puede ejecutarse cuando ya hay otra copia escrita.
+        const duplicate = fb_findExistingConfig(name, app, fbCurrentUser && fbCurrentUser.uid, record.className);
+        if (duplicate) {
+            record.createdAt = duplicate.createdAt || now;
+            fbDb.ref(`${FB_ACTIVITIES_PATH}/${duplicate.id}`).update(record)
+                .then(() => {
+                    _fb_optimisticUpdateCache(duplicate.id, record);
+                    _autosaveCloudConfigId = duplicate.id;
+                    if (onSuccess) onSuccess(true);
+                })
+                .catch(err => { if (onError) onError(err); });
+            return;
+        }
         // Crear nuevo registro
         record.createdAt = now;
         fbDb.ref(FB_ACTIVITIES_PATH).push(record)
@@ -12086,6 +12150,7 @@ let _autosaveChannel = null;
 let _autosaveCloudTimer = null;       // timer para guardar actividad en la nube
 let _autosaveCloudLastApp = null;     // última app guardada en la nube (para evitar re-guardados innecesarios)
 let _autosaveCloudConfigId = null;    // ID del último registro config guardado en la nube (evita duplicados)
+let _autosaveCloudSaveInFlight = null; // serializa guardados automáticos concurrentes
 let _autosaveStatusEl = null;
 let _autosaveApplying = false;        // true mientras se aplica estado remoto (evita loops)
 let _autosaveDebounceTimer = null;
@@ -12384,18 +12449,16 @@ function autosave_isActivityConfigured(app) {
 }
 
 function autosave_scheduleCloudSave() {
-    if (!fbCurrentUser || !fbDb) return; // sin sesión → no guardar en nube
-    const app = currentApp;
-    if (!app || app === 'home') return;
-    if (!autosave_isActivityConfigured(app)) return;
-    if (_autosaveCloudTimer) clearTimeout(_autosaveCloudTimer);
-    _autosaveCloudTimer = setTimeout(function () {
+    // El autosave conserva el estado de sesión en /sessions/{uid}. Crear o
+    // actualizar registros visibles en /activities corresponde solo al botón
+    // explícito de guardado; mezclar ambos flujos causaba copias inesperadas.
+    if (_autosaveCloudTimer) {
+        clearTimeout(_autosaveCloudTimer);
         _autosaveCloudTimer = null;
-        autosave_saveActivityToCloud();
-    }, AUTOSAVE_CLOUD_DEBOUNCE_MS);
+    }
 }
 
-function autosave_saveActivityToCloud() {
+async function autosave_saveActivityToCloud() {
     if (!fbCurrentUser || !fbDb) return;
     const app = currentApp;
     if (!app || app === 'home') return;
@@ -12404,6 +12467,15 @@ function autosave_saveActivityToCloud() {
     // Solo guardar si hay materia cargada (las actividades se asocian a materias)
     const subjectId = fb_getSubjectFingerprint();
     if (!subjectId) return;
+
+    // El autosave puede dispararse desde varios cambios seguidos y desde más
+    // de una pestaña. Esperar el guardado anterior evita varios push en paralelo.
+    if (_autosaveCloudSaveInFlight) {
+        await _autosaveCloudSaveInFlight;
+        if (!fbCurrentUser || !fbDb) return;
+    }
+    let releaseSave;
+    _autosaveCloudSaveInFlight = new Promise(resolve => { releaseSave = resolve; });
 
     try {
         const name = getActivityName(app).trim();
@@ -12453,6 +12525,24 @@ function autosave_saveActivityToCloud() {
             }
         }
 
+        // La caché puede estar todavía vacía al iniciar sesión. Leer Firebase
+        // directamente antes de crear el nodo para detectar registros existentes.
+        if (!existing) {
+            const snap = await fbDb.ref(FB_ACTIVITIES_PATH).once('value');
+            const records = snap.val() || {};
+            const candidates = Object.entries(records).map(([id, value]) => ({ id, ...value }));
+            existing = candidates.find(a =>
+                (a.appId === FB_APP_ID || !a.appId) &&
+                (a.kind || 'config') === 'config' && a.app === app &&
+                a.createdBy === fbCurrentUser.uid &&
+                (a.subjectId || '') === subjectId &&
+                (a.className || '').trim().toLowerCase() === className.trim().toLowerCase() &&
+                fb_recordInActiveCourse(a) &&
+                ((a.name || '').trim().toLowerCase() === name.trim().toLowerCase() ||
+                    fb_getConfigFingerprintForRecord(a) === fb_getConfigFingerprint(app))
+            ) || null;
+        }
+
         const now = Date.now();
         const record = {
             name: name,
@@ -12480,38 +12570,30 @@ function autosave_saveActivityToCloud() {
             // Usar el nombre del registro existente para no cambiarlo (el nombre
             // del estado puede diferir del nombre con el que se guardó originalmente)
             record.name = existing.name || name;
-            fbDb.ref(`${FB_ACTIVITIES_PATH}/${existing.id}`).update(record)
-                .then(function () {
-                    _autosaveCloudLastApp = app;
-                    _autosaveCloudConfigId = existing.id;
-                    // Actualización optimista: actualizar la caché local inmediatamente
-                    // para que el próximo guardado encuentre el registro sin esperar
-                    // a que la suscripción de Firebase lo entregue.
-                    _fb_optimisticUpdateCache(existing.id, record);
-                })
-                .catch(function (err) { console.warn('[Autosave Cloud] Error al actualizar config:', err); });
+            await fbDb.ref(`${FB_ACTIVITIES_PATH}/${existing.id}`).update(record);
+            _autosaveCloudLastApp = app;
+            _autosaveCloudConfigId = existing.id;
+            _fb_optimisticUpdateCache(existing.id, record);
             configIdForScores = existing.id;
         } else {
             // Crear nuevo registro
             record.createdAt = now;
-            fbDb.ref(FB_ACTIVITIES_PATH).push(record)
-                .then(function (snap) {
-                    _autosaveCloudLastApp = app;
-                    _autosaveCloudConfigId = snap.key;
-                    // Actualización optimista: añadir a la caché local inmediatamente
-                    _fb_optimisticAddToCache(snap.key, record);
-                    // Tras crear la config, guardar también las calificaciones
-                    autosave_saveScoresToCloud(app, snap.key, record.name);
-                })
-                .catch(function (err) { console.warn('[Autosave Cloud] Error al crear config:', err); });
+            const snap = await fbDb.ref(FB_ACTIVITIES_PATH).push(record);
+            _autosaveCloudLastApp = app;
+            _autosaveCloudConfigId = snap.key;
+            _fb_optimisticAddToCache(snap.key, record);
+            configIdForScores = snap.key;
         }
 
         // Si la config ya existía, guardar/actualizar también las calificaciones
         if (configIdForScores) {
-            autosave_saveScoresToCloud(app, configIdForScores, record.name);
+            await autosave_saveScoresToCloud(app, configIdForScores, record.name);
         }
     } catch(e) {
         console.warn('[Autosave Cloud] Error:', e);
+    } finally {
+        if (releaseSave) releaseSave();
+        _autosaveCloudSaveInFlight = null;
     }
 }
 
@@ -12545,7 +12627,7 @@ function _fb_optimisticUpdateCache(id, record) {
 
 // Guarda las calificaciones de la app actual en la nube (upsert silencioso).
 // Solo hay una copia de calificaciones por actividad: si ya existe, se actualiza.
-function autosave_saveScoresToCloud(app, configRef, configName) {
+async function autosave_saveScoresToCloud(app, configRef, configName) {
     if (!fbCurrentUser || !fbDb || !configRef) return;
     try {
         // Verificar que hay alumnos con calificaciones
@@ -12588,7 +12670,7 @@ function autosave_saveScoresToCloud(app, configRef, configName) {
 
         // Buscar si ya existe un registro de calificaciones para esta config,
         // usuario y curso activo (aislamiento de datos entre cursos)
-        const existingScores = fbAllActivities.find(a =>
+        let existingScores = fbAllActivities.find(a =>
             a.kind === 'scores' &&
             a.app === app &&
             a.configId === configId &&
@@ -12596,15 +12678,25 @@ function autosave_saveScoresToCloud(app, configRef, configName) {
             fb_recordInActiveCourse(a)
         );
 
+        if (!existingScores) {
+            const snap = await fbDb.ref(FB_ACTIVITIES_PATH).once('value');
+            const rows = snap.val() || {};
+            existingScores = Object.entries(rows).map(([id, value]) => ({ id, ...value })).find(a =>
+                (a.appId === FB_APP_ID || !a.appId) && a.kind === 'scores' &&
+                a.app === app && a.configId === configId && a.createdBy === fbCurrentUser.uid &&
+                fb_recordInActiveCourse(a)
+            ) || null;
+        }
+
         if (existingScores) {
             // Actualizar (upsert)
-            fbDb.ref(`${FB_ACTIVITIES_PATH}/${existingScores.id}`).update(record)
-                .catch(function (err) { console.warn('[Autosave Cloud] Error al actualizar scores:', err); });
+            await fbDb.ref(`${FB_ACTIVITIES_PATH}/${existingScores.id}`).update(record);
+            _fb_optimisticUpdateCache(existingScores.id, { ...record, createdAt: existingScores.createdAt });
         } else {
             // Crear nuevo
             record.createdAt = now;
-            fbDb.ref(FB_ACTIVITIES_PATH).push(record)
-                .catch(function (err) { console.warn('[Autosave Cloud] Error al crear scores:', err); });
+            const pushed = await fbDb.ref(FB_ACTIVITIES_PATH).push(record);
+            _fb_optimisticAddToCache(pushed.key, record);
         }
     } catch(e) {
         console.warn('[Autosave Cloud] Error guardando scores:', e);
@@ -12655,13 +12747,27 @@ function autosave_setupFirebaseSync() {
                       '/sessions/' + fbCurrentUser.uid;
     autosave_setStatus('syncing', 'Conectando a la nube…');
     const ref = fbDb.ref(_autosaveFbPath);
+    let initialValueReceived = false;
     const callback = function (snap) {
+        initialValueReceived = true;
+        if (!fbCurrentUser || !fbAuth || !fbAuth.currentUser || fbAuth.currentUser.uid !== _autosaveFbPath.split('/').pop()) return;
         const rawData = snap && snap.val ? snap.val() : null;
         if (!rawData) {
             // No hay datos en la nube aún → empujar el estado local actual
             // (pero solo si hay algo significativo que guardar)
             if (_autosaveLocalModifiedAt > 0 || subjectInfo.name) {
-                autosave_pushToFirebase();
+                // Confirma que el nodo sigue vacío antes de escribir. Evita
+                // reemplazar datos cuando el primer snapshot vacío fue un fallo
+                // temporal de permisos/conectividad.
+                ref.once('value').then(function (currentSnap) {
+                    if (!currentSnap.exists() && fbCurrentUser && fbAuth.currentUser &&
+                        fbAuth.currentUser.uid === _autosaveFbPath.split('/').pop()) {
+                        autosave_pushToFirebase();
+                    }
+                }).catch(function (err) {
+                    console.warn('[Autosave] No se pudo confirmar sesión remota vacía:', err);
+                    autosave_setStatus('error', 'Nube: ' + (err.message || 'no se pudo leer'));
+                });
             } else {
                 autosave_setStatus('idle');
             }
@@ -12710,6 +12816,9 @@ function autosave_setupFirebaseSync() {
     };
     const errCallback = function (err) {
         console.warn('[Autosave] Error en listener Firebase:', err);
+        // Un onValue puede notificar un snapshot vacío antes del error; no
+        // interpretar esa lectura como una sesión nueva ni escribir encima.
+        if (!initialValueReceived) initialValueReceived = true;
         autosave_setStatus('error', 'Nube: ' + (err.message || 'error de escucha'));
     };
     try {
@@ -13521,8 +13630,7 @@ window.onload = function() {
 
     // === INIT FIREBASE ===
     fb_setup();
-    // El forzado de logout se hace en fb_onAuthStateChanged vía _forceLogoutOnLoad,
-    // porque Firebase Auth restaura la sesión de forma asíncrona.
+    // Firebase Auth restaura la sesión de forma asíncrona y se conserva.
     fb_updateAccountUI();
     fb_updateCloudUI();
 
@@ -13907,6 +14015,7 @@ window.onload = function() {
         document.getElementById(id)?.addEventListener('change', fb_renderAdminActivities);
     });
     document.getElementById('fbAdminActCompleteFilter')?.addEventListener('change', fb_renderAdminActivities);
+    document.getElementById('fbAdminActDeduplicateBtn')?.addEventListener('click', fb_adminDeduplicateActivities);
     document.getElementById('fbAdminActClearFiltersBtn')?.addEventListener('click', function() {
         document.getElementById('fbAdminActAppFilter').value = '';
         document.getElementById('fbAdminActKindFilter').value = '';
