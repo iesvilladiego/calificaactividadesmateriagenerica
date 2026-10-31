@@ -11151,6 +11151,14 @@ async function fb_adminDeduplicateActivities() {
         const sample = toDelete.slice(0, 8).map(item => `• ${item.value.name || '(sin nombre)'} — ${item.value.createdByName || item.value.createdBy || 'usuario'}`).join('\n');
         if (!confirm(`Se encontraron ${toDelete.length} copia(s) duplicada(s). Se conservará la más reciente de cada actividad y se eliminará el resto.\n\n${sample}${toDelete.length > 8 ? '\n…' : ''}\n\n¿Continuar? Esta acción no se puede deshacer.`)) return;
         await Promise.all(toDelete.map(item => fbDb.ref(`${FB_ACTIVITIES_PATH}/${item.id}`).remove()));
+        // La suscripción puede tardar en propagar los remove al cliente.
+        // Recargar desde Firebase y renderizar la lista inmediatamente.
+        const refreshed = await fbDb.ref(FB_ACTIVITIES_PATH).once('value');
+        fbAllActivities = Object.entries(refreshed.val() || {})
+            .map(([id, value]) => ({ id, ...value }))
+            .filter(activity => !activity.appId || activity.appId === FB_APP_ID)
+            .sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+        fb_renderAdminActivities();
         alert(`✅ Limpieza completada. Se eliminaron ${toDelete.length} copias duplicadas; se conservó la más reciente de cada actividad.`);
     } catch (err) {
         console.error('Error eliminando duplicados de actividades:', err);
