@@ -7972,7 +7972,7 @@ function fb_refreshActivityGroupOptions() {
         .map(g => String(g.name).trim())
         .filter(Boolean);
     const uniqueGroups = [...new Set(groups)].sort((a, b) => a.localeCompare(b, 'es'));
-    const inputIds = ['examCourseInput', 'testCourseInput', 'genericCourseInput', 'inst_claseInput', 'pond_cursoInput', 'rubricGroupNameInput'];
+    const inputIds = ['examCourseInput', 'testCourseInput', 'genericCourseInput', 'inst_claseInput', 'rubricGroupNameInput'];
     inputIds.forEach((inputId, index) => {
         const input = document.getElementById(inputId);
         if (!input) return;
@@ -7985,6 +7985,27 @@ function fb_refreshActivityGroupOptions() {
         }
         input.setAttribute('list', listId);
         datalist.innerHTML = uniqueGroups.map(name => `<option value="${escapeHtml(name)}"></option>`).join('');
+        if (input.dataset.groupImportBound !== 'true') {
+            input.dataset.groupImportBound = 'true';
+            const appByInput = {
+                examCourseInput: 'exam', testCourseInput: 'test', genericCourseInput: 'generic',
+                inst_claseInput: 'instrumentos', rubricGroupNameInput: 'rubricas'
+            };
+            input.addEventListener('change', function() {
+                if (!fbCurrentCourseId || !this.value.trim()) return;
+                const courseNow = fbAllCourses.find(c => c.id === fbCurrentCourseId);
+                const selectedGroup = Object.entries(courseNow?.groups || {}).find(([, group]) =>
+                    group && (!group.appId || group.appId === FB_APP_ID) &&
+                    String(group.name || '').trim().toLocaleLowerCase('es') === this.value.trim().toLocaleLowerCase('es')
+                );
+                if (selectedGroup) {
+                    fb_importGroupStudents(fbCurrentCourseId, selectedGroup[0], {
+                        automatic: true,
+                        app: appByInput[inputId]
+                    });
+                }
+            });
+        }
     });
 }
 
@@ -8652,18 +8673,19 @@ function fb_removeStudentFromGroup(courseId, groupId, studentIdx) {
 }
 
 // Importar alumnos de un grupo a la app activa
-function fb_importGroupStudents(courseId, groupId) {
+function fb_importGroupStudents(courseId, groupId, options) {
+    options = options || {};
     const course = fbAllCourses.find(c => c.id === courseId);
     const group = course?.groups?.[groupId];
     if (!group || !group.students || group.students.length === 0) {
         alert('Este grupo no tiene alumnos.');
         return;
     }
-    const app = currentApp;
+    const app = options.app || currentApp;
     const stateMap = { exam: examState, test: testState, generic: genericState, instrumentos: instrumentState, rubricas: rubricState };
     const state = stateMap[app];
     if (!state) { alert('Selecciona una app primero (Examen, Test, Actividad, Instrumentos o Rúbricas).'); return; }
-    if (!confirm(`¿Importar ${group.students.length} alumno(s) del grupo "${group.name}" (${course.label}) a la app actual?\n\nLos alumnos se añadirán a la lista existente.`)) return;
+    if (!options.automatic && !confirm(`¿Importar ${group.students.length} alumno(s) del grupo "${group.name}" (${course.label}) a la app actual?\n\nLos alumnos se añadirán a la lista existente.`)) return;
     let added = 0, skipped = 0;
     group.students.forEach(s => {
         if (!s || !s.fullName) return;
@@ -8676,7 +8698,8 @@ function fb_importGroupStudents(courseId, groupId) {
         state.students.push({ id: uuid(), fullName: s.fullName });
         added++;
     });
-    state.students.sort((a, b) => (a.fullName || '').localeCompare(b.fullName || '', 'es', { sensitivity: 'base' }));
+    const scoreFieldByApp = { exam: 'scores', test: 'studentScores', generic: 'scores', instrumentos: 'evalScores' };
+    sortStudents(state, scoreFieldByApp[app] || 'scores');
     // Bug fix: normalizar calificaciones tras importar alumnos. Antes, los
     // nuevos alumnos no tenían filas de scores/studentScores/evalScores, lo
     // que podía causar errores al renderizar las tablas de calificación
@@ -8707,11 +8730,16 @@ function fb_importGroupStudents(courseId, groupId) {
         else if (app === 'instrumentos') { renderInstrumentosStudentTags(); inst_updateConfigButtonState(); }
         else if (app === 'rubricas') { rubric_renderStudentTags(); rubric_updateHeader(); rubric_saveLocal(); }
     } catch(e) { console.warn('Error re-renderizando tras importar alumnos:', e); }
-    alert(`✅ ${added} alumno(s) importado(s).${skipped > 0 ? ` ${skipped} ya existían y se omitieron.` : ''}`);
-    // Cerrar el modal de grupos
-    try {
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('fbGroupsModal'))?.hide();
-    } catch(e) {}
+    if (!options.automatic) {
+        alert(`✅ ${added} alumno(s) importado(s).${skipped > 0 ? ` ${skipped} ya existían y se omitieron.` : ''}`);
+        // Cerrar el modal de grupos
+        try {
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('fbGroupsModal'))?.hide();
+        } catch(e) {}
+    } else {
+        autosave_scheduleLocal('group-import');
+    }
+    return { added, skipped };
 }
 
 // Guardar la lista de alumnos actual de la app como un grupo nuevo
